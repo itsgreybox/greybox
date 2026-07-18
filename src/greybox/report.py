@@ -1,9 +1,29 @@
+import os
 from .analyzer import build_dependency_graph, confidence_score
 from .explainer import explain_module
 
 
-def generate_report(directory, output_path=None):
-    graph, all_facts = build_dependency_graph(directory)
+def _detect_language(directory):
+    """Pick the analyzer based on what's actually in the folder, rather
+    than asking the user to specify - most real legacy repos are one
+    dominant language, so a simple file-extension majority is enough."""
+    py_count = java_count = 0
+    for root, _, files in os.walk(directory):
+        for f in files:
+            if f.endswith('.py'):
+                py_count += 1
+            elif f.endswith('.java'):
+                java_count += 1
+    return 'java' if java_count > py_count else 'python'
+
+
+def generate_report(directory, output_path=None, language=None):
+    language = language or _detect_language(directory)
+    if language == 'java':
+        from .java_analyzer import build_java_dependency_graph
+        graph, all_facts = build_java_dependency_graph(directory)
+    else:
+        graph, all_facts = build_dependency_graph(directory)
     lines = ["# greybox Assessment Report", f"\nDirectory analyzed: `{directory}`\n"]
 
     lines.append("## Dependency Graph (real, extracted from imports)\n")
@@ -21,7 +41,8 @@ def generate_report(directory, output_path=None):
             src = f.read()
         explanation = explain_module(facts, src)
 
-        lines.append(f"### `{name}.py`")
+        ext = '.java' if language == 'java' else '.py'
+        lines.append(f"### `{name}{ext}`")
         lines.append(f"- **Confidence this is fully understood: {conf}/100**")
         lines.append(f"- Functions: {', '.join(facts.functions) or 'none'}")
         lines.append(f"- Depends on: {', '.join(facts.imports_from) or 'nothing internal'}")

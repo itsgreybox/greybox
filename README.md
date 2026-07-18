@@ -80,9 +80,13 @@ codebase directory
 
 ## Status
 
-Early proof of concept. Currently supports Python only. Java support
-(the highest-value next target given enterprise legacy prevalence) is
-the next planned step.
+Early proof of concept. Supports Python and Java (auto-detected from
+the folder contents). .NET/C# is a possible future target, held off
+deliberately until Python + Java are validated with real users —
+see `BACKLOG.md`.
+
+A static demo page (no backend, deployable to Vercel in ~2 minutes)
+showing a real run's output lives in `/demo` — see `demo/README.md`.
 
 ## License
 
