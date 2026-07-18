@@ -1,0 +1,13 @@
+Apache License 2.0
+
+This project is intended to be licensed under the Apache License,
+Version 2.0. The sandbox used to build this couldn't reach
+apache.org to fetch the exact license text, so before your first
+public push, replace this file with the real text from:
+
+https://www.apache.org/licenses/LICENSE-2.0.txt
+
+GitHub also does this automatically: when creating the repo (or via
+Add file > Create new file > name it LICENSE) GitHub offers a
+one-click "Apache License 2.0" template that inserts the correct text
+and your name/year automatically.
