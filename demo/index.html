@@ -181,7 +181,19 @@
   </div>
 </div>
 
-<section id="report">
+<section id="report" style="border-bottom:none; padding-bottom: 24px;">
+  <div class="wrap">
+    <h2>Top Risks — Read This First</h2>
+    <p class="section-note">The riskiest modules, ranked lowest-confidence-first, each with a direct first action — not a roadmap, just a concrete answer to "what do I do about this."</p>
+    <div class="graph-box" style="padding: 20px 24px;">
+      <div class="fact-row" style="margin-bottom:12px;"><b>1. billing_engine.py — 40/100 confidence.</b> First action: Extract the 11 undocumented constants into named variables and confirm their meaning with whoever owns this business logic.</div>
+      <div class="fact-row" style="margin-bottom:12px;"><b>2. legacy_utils.py — 60/100 confidence.</b> First action: Extract the 5 undocumented constants into named variables before touching anything else.</div>
+      <div class="fact-row"><b>3. main.py — 80/100 confidence.</b> First action: No red flags found — safe to modernize first, lower risk of breaking something hidden.</div>
+    </div>
+  </div>
+</section>
+
+<section>
   <div class="wrap">
     <h2>This is a real run, not a mockup</h2>
     <p class="section-note">Below is the actual output from analyzing a small, deliberately undocumented sample codebase — the same kind of tangled, magic-number-riddled code every legacy system accumulates over a decade.</p>
@@ -211,6 +223,7 @@ graph TD
       <div class="fact-row"><b>Depends on:</b> legacy_utils</div>
       <div class="fact-row"><b>Undocumented constants found:</b> 0.925, 1.0475, 0.98, 0.999, 12.5, and 6 more</div>
       <div class="risk">⚠️ Flagged risk in comments — line 38: <code class="inline">TODO ask Priya why this exists — DO NOT REMOVE (see incident 2019)</code></div>
+      <div class="fact-row" style="margin-top:12px;"><b>Suggested next step:</b> Extract the constants into named variables and confirm meaning with the business owner. Track down "Priya" or the referenced 2019 incident before touching this code.</div>
     </div>
 
     <div class="module">
@@ -222,6 +235,7 @@ graph TD
       <div class="fact-row"><b>Functions:</b> lookup_code, adj</div>
       <div class="fact-row"><b>Depends on:</b> nothing internal</div>
       <div class="fact-row"><b>Undocumented constants found:</b> 1000, 1.5, 100</div>
+      <div class="fact-row" style="margin-top:12px;"><b>Suggested next step:</b> Extract these constants into named variables before touching anything else in this file.</div>
     </div>
 
     <div class="module">
@@ -233,6 +247,7 @@ graph TD
       <div class="fact-row"><b>Functions:</b> run_nightly</div>
       <div class="fact-row"><b>Depends on:</b> billing_engine</div>
       <div class="fact-row"><b>Undocumented constants found:</b> none</div>
+      <div class="fact-row" style="margin-top:12px;"><b>Suggested next step:</b> No red flags found — reasonable candidate to modernize first, lower risk of breaking something hidden.</div>
     </div>
   </div>
 </section>
@@ -260,6 +275,20 @@ graph TD
     </div>
     <p class="section-note" style="margin-top: 20px;">The other 413 lines: a real Python AST parser, a real Java parser, a dependency graph builder, a confidence-scoring formula computed <i>before</i> any AI runs, a thread pool so 84 files don't take 15 minutes, a consistent report structure, and a test suite that proves it all works with zero API calls.</p>
     <div class="answer">"Yes, I'm calling Claude — so is every AI product you've ever used. The question isn't whether Claude is involved, it's whether you want to spend two weeks building the parser, the graph, the confidence math, and the concurrency handling yourselves, or use the version already built and proven on a real 84-file production codebase."</div>
+  </div>
+</section>
+
+<section>
+  <div class="wrap">
+    <h2>What's actually built, right now</h2>
+    <p class="section-note">Not a wishlist — every item below is real, tested code, not a roadmap slide.</p>
+    <div class="module">
+      <div class="fact-row" style="margin-bottom:10px;"><b>Python and Java support</b> — auto-detected from the folder, real AST parsers for both (not regex), verified against Uber's public rides-java-sdk (84 files).</div>
+      <div class="fact-row" style="margin-bottom:10px;"><b>JSON export</b> (<code class="inline">--format json</code>) — structured, sortable, diffable output for dashboards or CI checks. A chat transcript can't be either.</div>
+      <div class="fact-row" style="margin-bottom:10px;"><b>Concurrent analysis</b> (<code class="inline">--workers 8</code>) — 84 files run in parallel instead of one at a time, since each is a network wait, not CPU work.</div>
+      <div class="fact-row" style="margin-bottom:10px;"><b>Secret redaction</b> — hardcoded API keys, AWS keys, passwords, and DB connection strings are stripped before anything is sent to the AI. First pass, not a full secrets scanner — see SECURITY.md.</div>
+      <div class="fact-row"><b>Suggested next steps per finding</b> — a direct, rule-based answer to "what do I do about this," not a roadmap. See the Top Risks section above.</div>
+    </div>
   </div>
 </section>
 
