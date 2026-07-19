@@ -90,3 +90,45 @@ def confidence_score(facts):
     risk += 15 if facts.has_bare_except else 0
     risk += 10 if not facts.todo_comments else -5
     return max(0, 100 - risk)
+
+
+def suggest_next_steps(facts):
+    """Deterministic, rule-based suggestions tied directly to what was
+    actually found - NOT a roadmap, NOT effort estimates, NOT
+    sequencing. This answers "what do I do with this finding" one
+    finding at a time. Full roadmap generation (timelines, sequencing,
+    resourcing) is explicitly out of scope - see BACKLOG.md and
+    README.md "What it doesn't do". That's the agencies' job; this is
+    a direct, honest answer to a direct, honest finding."""
+    steps = []
+
+    if facts.magic_numbers:
+        steps.append(
+            f"Extract the {len(facts.magic_numbers)} undocumented constant(s) into "
+            f"named variables and confirm their meaning with whoever owns this "
+            f"business logic before changing anything else in this file."
+        )
+
+    if facts.has_bare_except:
+        steps.append(
+            "Add logging to the silent exception handler before touching this "
+            "file - right now, failures here are invisible, which makes it "
+            "unsafe to refactor until you can see what's actually failing."
+        )
+
+    if facts.todo_comments:
+        for _, comment in facts.todo_comments:
+            steps.append(
+                f"Track down the person or incident referenced in this comment "
+                f"before removing or changing the code it's attached to: "
+                f"\"{comment}\""
+            )
+
+    if not steps:
+        steps.append(
+            "No specific red flags found - this module is a reasonable "
+            "candidate to modernize first, since the risk of breaking "
+            "something hidden is lower here than elsewhere."
+        )
+
+    return steps

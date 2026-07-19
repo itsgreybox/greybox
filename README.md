@@ -26,6 +26,11 @@ informed.
 - Passes those facts to Claude to generate a **plain-English
   explanation**, explicitly instructed to cite evidence and say
   "uncertain" rather than guess.
+- Gives a **direct, rule-based suggested next step per finding** — not
+  a roadmap, not effort estimates, just a concrete answer to "what do
+  I actually do about this," e.g. "extract this magic number and
+  confirm its meaning with whoever owns this logic," not "modernize
+  this system in 6 phases over 18 months."
 
 ## What it doesn't do (on purpose)
 

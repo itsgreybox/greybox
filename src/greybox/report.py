@@ -1,7 +1,7 @@
 import os
 import json
 from concurrent.futures import ThreadPoolExecutor, as_completed
-from .analyzer import build_dependency_graph, confidence_score
+from .analyzer import build_dependency_graph, confidence_score, suggest_next_steps
 from .explainer import explain_module
 
 
@@ -71,7 +71,10 @@ def generate_report(directory, output_path=None, language=None, workers=8):
         key=lambda x: x[1],
     )
     top_n = ranked[:5]
-    risk_lines = [f"{i+1}. `{name}{ext}` — {conf}/100 confidence" for i, (name, conf) in enumerate(top_n)]
+    risk_lines = []
+    for i, (name, conf) in enumerate(top_n):
+        first_step = suggest_next_steps(all_facts[name])[0]
+        risk_lines.append(f"{i+1}. `{name}{ext}` — {conf}/100 confidence. **First action:** {first_step}")
     lines[top_risk_placeholder_index] = "\n".join(risk_lines) + "\n"
 
     for name, facts in all_facts.items():
@@ -89,6 +92,11 @@ def generate_report(directory, output_path=None, language=None, workers=8):
             lines.append("- ⚠️ **Flagged risk in comments:**")
             for ln, comment in facts.todo_comments:
                 lines.append(f"  - line {ln}: `{comment}`")
+
+        lines.append("\n**Suggested next step(s):**")
+        for step in suggest_next_steps(facts):
+            lines.append(f"- {step}")
+
         lines.append(f"\n**AI explanation** _(source: {explanation['source']})_:")
         lines.append(f"```\n{explanation['text']}\n```\n")
 
@@ -122,6 +130,7 @@ def generate_json(directory, output_path=None, language=None):
             "magic_numbers": facts.magic_numbers,
             "has_bare_except": facts.has_bare_except,
             "flagged_comments": [{"line": ln, "text": c} for ln, c in facts.todo_comments],
+            "suggested_next_steps": suggest_next_steps(facts),
         })
 
     result = {
