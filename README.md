@@ -1,4 +1,4 @@
-# greybox
+<p align="center"><img src="docs/assets/logo.png" alt="greybox" width="360"></p>
 
 **Point it at an undocumented codebase. Get a plain-English assessment
 of what it does, a real dependency graph, and an honest confidence
