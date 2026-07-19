@@ -176,7 +176,7 @@
     <p class="sub">Point greybox at an undocumented codebase. In minutes, get a real dependency graph, risk flags, and an honest confidence score per module — the same "what does this actually do" work consultants charge $15K–$180K for as the first phase of a bigger engagement.</p>
     <div class="cta-row">
       <a class="cta filled" href="#report">See a real report ↓</a>
-      <a class="cta" href="mailto:itsarunkmishra@gmail.com">Tell me if this is useful</a>
+      <a class="cta" href="mailto:arun@arunkmishra.com">Tell me if this is useful</a>
     </div>
   </div>
 </div>
@@ -240,24 +240,40 @@ graph TD
 <section>
   <div class="wrap">
     <h2>Why not just paste the code into Claude or ChatGPT?</h2>
-    <div class="answer"><b>Scale.</b> A real legacy system is thousands of files. Nobody pastes those in one at a time — greybox automates the traversal.</div>
-    <div class="answer"><b>Consistency.</b> Every module gets the same structured output, so 200 findings are comparable, not 200 different ad-hoc chat replies.</div>
-    <div class="answer"><b>Cross-file reasoning.</b> Understanding what a system does means knowing Module A calls Module B which reads a config three files away — a single pasted-in file can't see that. greybox builds the real dependency graph first.</div>
-    <div class="answer"><b>Honest uncertainty.</b> The confidence score is computed from real code signals before any AI runs — so the tool can't be talked into a confident-sounding guess.</div>
+    <p class="section-note">Tested this directly: ran greybox against Uber's real public <code class="inline">rides-java-sdk</code> — 84 files, not a toy example.</p>
+    <div class="answer"><b>Honest concession first.</b> On 3 files, raw Claude is just as good, maybe better — richer prose, no argument. The gap only shows up at real scale.</div>
+    <div class="answer"><b>At 84 files, "just ask Claude" means 84 separate chat answers</b> in 84 message bubbles, each one prose. To find the riskiest files, you'd have to manually re-read all 84 and rank them yourself — nothing sorts them for you.</div>
+    <div class="answer"><b>greybox gives one ranked list instead.</b> One command, walks away, comes back with every one of the 84 files sorted lowest-confidence-first — "here are the 6 riskiest, go look at those" is one line of output, not an hour of reading.</div>
+    <div class="answer"><b>Structured, not prose.</b> Output is real JSON — diffable against next month's run after a refactor, or wired into a CI check. A chat transcript can't be diffed or gated on.</div>
   </div>
 </section>
 
-<section style="border-bottom:none;">
+<section>
+  <div class="wrap">
+    <h2>"But you're just calling Claude API — anyone can do that"</h2>
+    <p class="section-note">True, and worth saying plainly: yes, anyone can call the Claude API. So does almost every AI product that exists. The real question is whether someone would actually build everything around that API call themselves.</p>
+    <div class="graph-box" style="text-align:center; padding: 32px;">
+      <div style="font-family:'IBM Plex Mono', monospace; font-size: 15px; color: var(--muted); line-height: 2;">
+        414 lines of code, total<br>
+        <span style="color: var(--cyan); font-size: 22px; font-weight: 600;">1 line</span> that actually calls the Claude API
+      </div>
+    </div>
+    <p class="section-note" style="margin-top: 20px;">The other 413 lines: a real Python AST parser, a real Java parser, a dependency graph builder, a confidence-scoring formula computed <i>before</i> any AI runs, a thread pool so 84 files don't take 15 minutes, a consistent report structure, and a test suite that proves it all works with zero API calls.</p>
+    <div class="answer">"Yes, I'm calling Claude — so is every AI product you've ever used. The question isn't whether Claude is involved, it's whether you want to spend two weeks building the parser, the graph, the confidence math, and the concurrency handling yourselves, or use the version already built and proven on a real 84-file production codebase."</div>
+  </div>
+</section>
+
+<section style="border-bottom:none; padding-bottom: 8px;">
   <div class="wrap">
     <h2>What this is not (on purpose)</h2>
-    <p class="section-note">No code rewriting. No migration execution. No full roadmap generation — that's real, valuable work best left to specialist firms. greybox is the fast, cheap first look you'd want before that conversation, not a replacement for it.</p>
+    <p class="section-note" style="margin-bottom: 0;">No code rewriting. No migration execution. No full roadmap generation — that's real, valuable work best left to specialist firms. greybox is the fast, cheap first look you'd want before that conversation, not a replacement for it.</p>
   </div>
 </section>
 
-<footer>
+<footer style="padding-top: 24px;">
   <div class="wrap">
-    Built by Arun Mishra. Currently supports Python and Java. Early proof of concept — I'm looking for 5-10 people who've lived this pain to tell me honestly if this is useful.
-    <br><a href="mailto:itsarunkmishra@gmail.com">itsarunkmishra@gmail.com</a>
+    Built by <a href="https://arunkmishra.com" target="_blank">Arun Mishra</a>. Currently supports Python and Java. Early proof of concept — I'm looking for 5-10 people who've lived this pain to tell me honestly if this is useful.
+    <br><a href="mailto:arun@arunkmishra.com">arun@arunkmishra.com</a>
   </div>
 </footer>
 

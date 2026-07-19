@@ -1,4 +1,6 @@
 import os
+import json
+from concurrent.futures import ThreadPoolExecutor, as_completed
 from .analyzer import build_dependency_graph, confidence_score
 from .explainer import explain_module
 
@@ -17,7 +19,7 @@ def _detect_language(directory):
     return 'java' if java_count > py_count else 'python'
 
 
-def generate_report(directory, output_path=None, language=None):
+def generate_report(directory, output_path=None, language=None, workers=8):
     language = language or _detect_language(directory)
     if language == 'java':
         from .java_analyzer import build_java_dependency_graph
@@ -36,12 +38,29 @@ def generate_report(directory, output_path=None, language=None):
 
     lines.append("## Module-by-Module Findings\n")
     total = len(all_facts)
-    for idx, (name, facts) in enumerate(all_facts.items(), 1):
-        print(f"[{idx}/{total}] analyzing {name}...", flush=True)
-        conf = confidence_score(facts)
+
+    def _explain_one(name_facts):
+        name, facts = name_facts
         with open(facts.path) as f:
             src = f.read()
-        explanation = explain_module(facts, src)
+        return name, facts, explain_module(facts, src)
+
+    # explain_module calls are network-bound waits (Claude API), not CPU
+    # work - a thread pool is the correct fix here, not more raw compute.
+    # Kept modest (default 8) to avoid hammering API rate limits.
+    results = {}
+    done = 0
+    with ThreadPoolExecutor(max_workers=workers) as pool:
+        futures = {pool.submit(_explain_one, item): item[0] for item in all_facts.items()}
+        for future in as_completed(futures):
+            name, facts, explanation = future.result()
+            results[name] = (facts, explanation)
+            done += 1
+            print(f"[{done}/{total}] analyzed {name}", flush=True)
+
+    for name, facts in all_facts.items():
+        stored_facts, explanation = results[name]
+        conf = confidence_score(stored_facts)
 
         ext = '.java' if language == 'java' else '.py'
         lines.append(f"### `{name}{ext}`")
@@ -63,3 +82,41 @@ def generate_report(directory, output_path=None, language=None):
         with open(output_path, "w") as f:
             f.write(report)
     return report
+
+
+def generate_json(directory, output_path=None, language=None):
+    """Structured, machine-usable output - the thing a chat conversation
+    can never give you. Every module gets the same fields, so you can
+    sort by confidence, diff two runs over time, or feed this straight
+    into a dashboard/CI check. A chat transcript can't be sorted,
+    filtered, or diffed - this can."""
+    language = language or _detect_language(directory)
+    if language == 'java':
+        from .java_analyzer import build_java_dependency_graph
+        graph, all_facts = build_java_dependency_graph(directory)
+    else:
+        graph, all_facts = build_dependency_graph(directory)
+
+    modules = []
+    for name, facts in all_facts.items():
+        modules.append({
+            "module": name,
+            "confidence": confidence_score(facts),
+            "functions": facts.functions,
+            "depends_on": facts.imports_from,
+            "magic_numbers": facts.magic_numbers,
+            "has_bare_except": facts.has_bare_except,
+            "flagged_comments": [{"line": ln, "text": c} for ln, c in facts.todo_comments],
+        })
+
+    result = {
+        "directory": directory,
+        "language": language,
+        "dependency_graph": graph,
+        "modules": sorted(modules, key=lambda m: m["confidence"]),
+    }
+
+    if output_path:
+        with open(output_path, "w") as f:
+            json.dump(result, f, indent=2)
+    return result

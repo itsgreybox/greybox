@@ -31,7 +31,8 @@ TODO/warning comments found: {facts.todo_comments}
 Source:
 {source_snippet}
 
-Respond in this exact format:
+Respond in this exact format. Keep each section tight — a few bullet
+points, not an essay:
 SUMMARY: <2-3 plain English sentences on what this module does>
 RISKS: <bullet list of specific ambiguous or risky behaviors, citing line evidence>
 UNCERTAIN_ABOUT: <what you genuinely cannot determine from this code alone>
@@ -48,7 +49,7 @@ def explain_module(facts, source_snippet, api_key=None, model="claude-sonnet-4-6
     prompt = _build_prompt(facts, source_snippet)
     resp = client.messages.create(
         model=model,
-        max_tokens=500,
+        max_tokens=1024,
         messages=[{"role": "user", "content": prompt}],
     )
     text = "".join(b.text for b in resp.content if b.type == "text")
