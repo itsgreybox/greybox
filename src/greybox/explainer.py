@@ -6,12 +6,43 @@ didn't observe. If no API key is present, uses an honestly-labeled
 mock so the tool is still runnable and truthful about what's real.
 """
 import os
+import re
 
 try:
     import anthropic
     HAS_SDK = True
 except ImportError:
     HAS_SDK = False
+
+
+# Basic patterns for common secret shapes. This is a first pass, not a
+# comprehensive secret scanner - catches obvious hardcoded cases (API
+# keys, AWS keys, generic password/token assignments, DB connection
+# strings) but is NOT a substitute for a real secrets-scanning tool
+# before running this on genuinely sensitive proprietary code. See
+# SECURITY.md.
+_SECRET_PATTERNS = [
+    (re.compile(r'sk-[a-zA-Z0-9]{20,}'), '[REDACTED_API_KEY]'),
+    (re.compile(r'AKIA[0-9A-Z]{16}'), '[REDACTED_AWS_KEY]'),
+    (re.compile(r'(?i)(mongodb|postgres|mysql|redis)://[^\s"\']+'), '[REDACTED_CONNECTION_STRING]'),
+]
+
+_ASSIGNMENT_PATTERN = re.compile(
+    r'(?i)(password|passwd|pwd|secret|token|api_key|apikey)\s*([=:])\s*["\']([^"\']{4,})["\']'
+)
+
+
+def redact_secrets(source):
+    """Best-effort redaction of obvious hardcoded secrets before source
+    is sent to the API. Legacy code is exactly where these hide as
+    forgotten hardcoded values."""
+    redacted = source
+    for pattern, replacement in _SECRET_PATTERNS:
+        redacted = pattern.sub(replacement, redacted)
+    redacted = _ASSIGNMENT_PATTERN.sub(
+        lambda m: f'{m.group(1)}{m.group(2)}"[REDACTED]"', redacted
+    )
+    return redacted
 
 
 def _build_prompt(facts, source_snippet):
@@ -46,7 +77,8 @@ def explain_module(facts, source_snippet, api_key=None, model="claude-sonnet-4-6
         return _mock_explain(facts)
 
     client = anthropic.Anthropic(api_key=api_key)
-    prompt = _build_prompt(facts, source_snippet)
+    safe_source = redact_secrets(source_snippet)
+    prompt = _build_prompt(facts, safe_source)
     resp = client.messages.create(
         model=model,
         max_tokens=1024,

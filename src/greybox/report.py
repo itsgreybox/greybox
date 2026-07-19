@@ -28,6 +28,13 @@ def generate_report(directory, output_path=None, language=None, workers=8):
         graph, all_facts = build_dependency_graph(directory)
     lines = ["# greybox Assessment Report", f"\nDirectory analyzed: `{directory}`\n"]
 
+    lines.append("## Top Risks — Read This First\n")
+    lines.append("_The 5 riskiest modules, ranked lowest-confidence-first. On a real "
+                  "codebase this is the whole point: one ranked list instead of reading "
+                  "every file's answer yourself._\n")
+    top_risk_placeholder_index = len(lines)
+    lines.append("")  # filled in after facts are computed, see below
+
     lines.append("## Dependency Graph (real, extracted from imports)\n")
     lines.append("```mermaid\ngraph TD")
     for mod, deps in graph.items():
@@ -58,11 +65,19 @@ def generate_report(directory, output_path=None, language=None, workers=8):
             done += 1
             print(f"[{done}/{total}] analyzed {name}", flush=True)
 
+    ext = '.java' if language == 'java' else '.py'
+    ranked = sorted(
+        ((name, confidence_score(facts)) for name, facts in all_facts.items()),
+        key=lambda x: x[1],
+    )
+    top_n = ranked[:5]
+    risk_lines = [f"{i+1}. `{name}{ext}` — {conf}/100 confidence" for i, (name, conf) in enumerate(top_n)]
+    lines[top_risk_placeholder_index] = "\n".join(risk_lines) + "\n"
+
     for name, facts in all_facts.items():
         stored_facts, explanation = results[name]
         conf = confidence_score(stored_facts)
 
-        ext = '.java' if language == 'java' else '.py'
         lines.append(f"### `{name}{ext}`")
         lines.append(f"- **Confidence this is fully understood: {conf}/100**")
         lines.append(f"- Functions: {', '.join(facts.functions) or 'none'}")
