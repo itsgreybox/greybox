@@ -4,6 +4,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>greybox — see into the black box</title>
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='6' fill='%230B1220'/%3E%3Crect x='7' y='7' width='11' height='11' fill='%234FD1E8'/%3E%3Crect x='18' y='18' width='7' height='7' fill='%237C8CAD' opacity='0.5'/%3E%3C/svg%3E">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;600;700&family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet">
 <script src="https://cdnjs.cloudflare.com/ajax/libs/mermaid/10.9.0/mermaid.min.js"></script>
@@ -20,6 +21,7 @@
     --amber-dim: rgba(240, 166, 58, 0.15);
   }
   * { box-sizing: border-box; }
+  html { scroll-behavior: smooth; }
   body {
     margin: 0;
     background: var(--bg);
@@ -28,6 +30,45 @@
     line-height: 1.55;
   }
   .wrap { max-width: 880px; margin: 0 auto; padding: 0 24px; }
+
+  /* sticky top nav */
+  .topnav {
+    position: sticky;
+    top: 0;
+    z-index: 50;
+    background: rgba(11, 18, 32, 0.92);
+    backdrop-filter: blur(8px);
+    border-bottom: 1px solid var(--line);
+  }
+  .topnav-inner {
+    max-width: 880px;
+    margin: 0 auto;
+    padding: 14px 24px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 16px;
+    flex-wrap: wrap;
+  }
+  .topnav-brand {
+    font-family: 'Space Grotesk', sans-serif;
+    font-weight: 700;
+    font-size: 16px;
+    color: var(--text);
+    text-decoration: none;
+  }
+  .topnav-links { display: flex; gap: 20px; flex-wrap: wrap; }
+  .topnav-links a {
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 12.5px;
+    color: var(--muted);
+    text-decoration: none;
+    white-space: nowrap;
+  }
+  .topnav-links a:hover { color: var(--cyan); }
+  @media (max-width: 700px) {
+    .topnav-links { display: none; }
+  }
 
   /* signature: a scanline grid, faint, like a blueprint underlay */
   .hero {
@@ -72,6 +113,43 @@
     text-decoration: none;
   }
   .cta.filled { background: var(--cyan); color: #06131A; border-color: var(--cyan); }
+
+  /* live scanner */
+  .scan-box {
+    background: var(--surface);
+    border: 1px solid var(--line);
+    border-radius: 8px;
+    padding: 24px;
+    margin-top: 8px;
+  }
+  .scan-row { display: flex; gap: 10px; flex-wrap: wrap; }
+  .scan-input {
+    flex: 1;
+    min-width: 220px;
+    background: var(--surface-2);
+    border: 1px solid var(--line);
+    border-radius: 4px;
+    color: var(--text);
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 14px;
+    padding: 12px 14px;
+  }
+  .scan-input::placeholder { color: var(--muted); }
+  .scan-btn {
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 13.5px;
+    font-weight: 500;
+    padding: 12px 22px;
+    border-radius: 4px;
+    border: none;
+    background: var(--cyan);
+    color: #06131A;
+    cursor: pointer;
+  }
+  .scan-btn:disabled { opacity: 0.5; cursor: not-allowed; }
+  .scan-status { font-family: 'IBM Plex Mono', monospace; font-size: 13px; color: var(--muted); margin-top: 12px; }
+  .scan-error { color: #F3A0A0; font-size: 13.5px; margin-top: 12px; }
+  .scan-note { font-size: 12.5px; color: var(--muted); margin-top: 14px; }
 
   section { padding: 56px 0; border-bottom: 1px solid var(--line); }
   h2 {
@@ -169,22 +247,53 @@
 </head>
 <body>
 
+<nav class="topnav">
+  <div class="topnav-inner">
+    <a class="topnav-brand" href="#">greybox</a>
+    <div class="topnav-links">
+      <a href="#live-scan">Try it live</a>
+      <a href="#top-risks">Sample report</a>
+      <a href="#why-not-claude">Why not just Claude</a>
+      <a href="#just-api">The 414-line answer</a>
+      <a href="#features">Features</a>
+      <a href="mailto:arun@arunkmishra.com">Contact</a>
+    </div>
+  </div>
+</nav>
+
 <div class="hero">
   <div class="wrap">
     <div class="eyebrow">greybox — legacy assessment tool</div>
     <h1>Before you spend $500K figuring out what an old system does —<br><span>see into the black box first.</span></h1>
     <p class="sub">Point greybox at an undocumented codebase. In minutes, get a real dependency graph, risk flags, and an honest confidence score per module — the same "what does this actually do" work consultants charge $15K–$180K for as the first phase of a bigger engagement.</p>
     <div class="cta-row">
-      <a class="cta filled" href="#report">See a real report ↓</a>
+      <a class="cta filled" href="#live-scan">Try it on a real repo ↓</a>
       <a class="cta" href="mailto:arun@arunkmishra.com">Tell me if this is useful</a>
     </div>
   </div>
 </div>
 
-<section id="report" style="border-bottom:none; padding-bottom: 24px;">
+<section id="live-scan">
   <div class="wrap">
-    <h2>Top Risks — Read This First</h2>
-    <p class="section-note">The riskiest modules, ranked lowest-confidence-first, each with a direct first action — not a roadmap, just a concrete answer to "what do I do about this."</p>
+    <h2>Try it on a real public GitHub repo</h2>
+    <p class="section-note">Paste a public GitHub repo URL. This runs a live scan — real files, real analysis, not the canned example below.</p>
+    <div class="scan-box">
+      <div class="scan-row">
+        <input class="scan-input" id="repoInput" type="text" placeholder="https://github.com/owner/repo" />
+        <button class="scan-btn" id="scanBtn" onclick="runScan()">Scan repo</button>
+      </div>
+      <div class="scan-status" id="scanStatus"></div>
+      <div class="scan-error" id="scanError"></div>
+      <div id="scanResults"></div>
+      <p class="scan-note">Scans up to 20 Python/Java files per repo using a fast, simplified analyzer (regex-based, not the full AST parser the real CLI tool uses — see the <a href="https://github.com/ArunMishra1/greybox" style="color:var(--cyan);" target="_blank">GitHub repo</a> for the accurate version). No AI explanation in this live demo, just the deterministic layer — same honesty rule as the rest of this tool.</p>
+    </div>
+  </div>
+</section>
+
+<section id="top-risks" style="border-bottom:none; padding-bottom: 24px;">
+  <div class="wrap">
+    <h2>Sample report (canned example)</h2>
+    <p class="section-note">Not live — this is a fixed example on a small, deliberately undocumented sample codebase, showing what the report format looks like. Use the live scanner above for a real repo.</p>
     <div class="graph-box" style="padding: 20px 24px;">
       <div class="fact-row" style="margin-bottom:12px;"><b>1. billing_engine.py — 40/100 confidence.</b> First action: Extract the 11 undocumented constants into named variables and confirm their meaning with whoever owns this business logic.</div>
       <div class="fact-row" style="margin-bottom:12px;"><b>2. legacy_utils.py — 60/100 confidence.</b> First action: Extract the 5 undocumented constants into named variables before touching anything else.</div>
@@ -254,7 +363,7 @@ graph TD
 
 <section>
   <div class="wrap">
-    <h2>Why not just paste the code into Claude or ChatGPT?</h2>
+    <h2 id="why-not-claude">Why not just paste the code into Claude or ChatGPT?</h2>
     <p class="section-note">Tested this directly: ran greybox against Uber's real public <code class="inline">rides-java-sdk</code> — 84 files, not a toy example.</p>
     <div class="answer"><b>Honest concession first.</b> On 3 files, raw Claude is just as good, maybe better — richer prose, no argument. The gap only shows up at real scale.</div>
     <div class="answer"><b>At 84 files, "just ask Claude" means 84 separate chat answers</b> in 84 message bubbles, each one prose. To find the riskiest files, you'd have to manually re-read all 84 and rank them yourself — nothing sorts them for you.</div>
@@ -265,7 +374,7 @@ graph TD
 
 <section>
   <div class="wrap">
-    <h2>"But you're just calling Claude API — anyone can do that"</h2>
+    <h2 id="just-api">"But you're just calling Claude API — anyone can do that"</h2>
     <p class="section-note">True, and worth saying plainly: yes, anyone can call the Claude API. So does almost every AI product that exists. The real question is whether someone would actually build everything around that API call themselves.</p>
     <div class="graph-box" style="text-align:center; padding: 32px;">
       <div style="font-family:'IBM Plex Mono', monospace; font-size: 15px; color: var(--muted); line-height: 2;">
@@ -280,7 +389,7 @@ graph TD
 
 <section>
   <div class="wrap">
-    <h2>What's actually built, right now</h2>
+    <h2 id="features">What's actually built, right now</h2>
     <p class="section-note">Not a wishlist — every item below is real, tested code, not a roadmap slide.</p>
     <div class="module">
       <div class="fact-row" style="margin-bottom:10px;"><b>Python and Java support</b> — auto-detected from the folder, real AST parsers for both (not regex), verified against Uber's public rides-java-sdk (84 files).</div>
@@ -308,6 +417,73 @@ graph TD
 
 <script>
   mermaid.initialize({ startOnLoad: true, theme: 'dark' });
+
+  async function runScan() {
+    const input = document.getElementById('repoInput');
+    const btn = document.getElementById('scanBtn');
+    const status = document.getElementById('scanStatus');
+    const errorBox = document.getElementById('scanError');
+    const results = document.getElementById('scanResults');
+
+    const repoUrl = input.value.trim();
+    if (!repoUrl) return;
+
+    btn.disabled = true;
+    status.textContent = 'Scanning... (fetching files from GitHub, this can take a few seconds)';
+    errorBox.textContent = '';
+    results.innerHTML = '';
+
+    try {
+      const res = await fetch('/api/scan', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ repoUrl }),
+      });
+      const data = await res.json();
+
+      if (!res.ok) {
+        errorBox.textContent = data.error || 'Scan failed.';
+        status.textContent = '';
+        return;
+      }
+
+      status.textContent = `Scanned ${data.files_scanned} of ${data.files_available} ${data.language} files in ${data.repo}.`;
+
+      let html = '';
+      data.modules.forEach((m) => {
+        const stepsHtml = m.suggested_next_steps.map(s => `<div class="fact-row" style="margin-top:8px;"><b>Next step:</b> ${escapeHtml(s)}</div>`).join('');
+        const magicHtml = m.magic_numbers.length ? m.magic_numbers.slice(0, 8).join(', ') + (m.magic_numbers.length > 8 ? `, and ${m.magic_numbers.length - 8} more` : '') : 'none';
+        const commentsHtml = m.flagged_comments.length
+          ? `<div class="risk">⚠️ Flagged risk in comments — line ${m.flagged_comments[0].line}: <code class="inline">${escapeHtml(m.flagged_comments[0].text)}</code></div>`
+          : '';
+        html += `
+          <div class="module">
+            <div class="module-head">
+              <span class="module-name">${escapeHtml(m.path)}</span>
+              <span class="conf-label">${m.confidence} / 100 confidence</span>
+            </div>
+            <div class="conf-bar"><div class="conf-fill" style="width:${m.confidence}%"></div></div>
+            <div class="fact-row"><b>Functions:</b> ${m.functions.length ? escapeHtml(m.functions.join(', ')) : 'none detected'}</div>
+            <div class="fact-row"><b>Undocumented constants found:</b> ${escapeHtml(String(magicHtml))}</div>
+            ${m.has_bare_except ? '<div class="fact-row">⚠️ <b>Silently swallows errors</b> (bare except/catch found)</div>' : ''}
+            ${commentsHtml}
+            ${stepsHtml}
+          </div>`;
+      });
+      results.innerHTML = html;
+    } catch (err) {
+      errorBox.textContent = 'Something went wrong: ' + err.message;
+      status.textContent = '';
+    } finally {
+      btn.disabled = false;
+    }
+  }
+
+  function escapeHtml(str) {
+    const div = document.createElement('div');
+    div.textContent = str;
+    return div.innerHTML;
+  }
 </script>
 </body>
 </html>
