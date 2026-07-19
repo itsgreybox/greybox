@@ -132,3 +132,30 @@ def suggest_next_steps(facts):
         )
 
     return steps
+
+
+def estimate_effort(facts):
+    """Heuristic effort score - same logic as the web demo (shared.js
+    _estimateEffort), kept in sync deliberately: more distinct issues to
+    fix = more effort. A file with one magic number and nothing else is
+    a quick win; a file with magic numbers AND a silent exception AND a
+    flagged comment is not. Lower score = easier/quicker to tackle."""
+    steps = suggest_next_steps(facts)
+    effort = len(steps) * 2
+    effort += min(len(facts.magic_numbers), 6) * 0.5
+    effort += 2 if facts.has_bare_except else 0
+    return effort
+
+
+def categorize_finding(facts):
+    """Mutually-exclusive category for a findings-breakdown tally - same
+    categories as the web demo's findings chart (shared.js
+    renderFindingsChart), kept in sync deliberately. Deliberately NOT
+    called "vulnerabilities" - this isn't a security scanner."""
+    if facts.todo_comments:
+        return "flagged_comment"
+    if facts.has_bare_except:
+        return "silent_failure"
+    if facts.magic_numbers:
+        return "undocumented_constants"
+    return "clean"

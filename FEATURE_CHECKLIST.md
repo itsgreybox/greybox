@@ -17,6 +17,9 @@ observed working, not just written.
 - [x] Deterministic confidence score, computed before any AI call —
       verified (billing_engine scored 40/100, main.py scored 80/100,
       correctly ranking undocumented complexity)
+- [x] Easy-to-hard "what to do next" ordering within the risk pool,
+      and a findings-breakdown tally — kept deliberately in sync with
+      the same logic in the web demo (shared.js)
 
 ## AI layer (explainer.py)
 

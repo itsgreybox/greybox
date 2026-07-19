@@ -1,7 +1,10 @@
 import os
 import json
 from concurrent.futures import ThreadPoolExecutor, as_completed
-from .analyzer import build_dependency_graph, confidence_score, suggest_next_steps
+from .analyzer import (
+    build_dependency_graph, confidence_score, suggest_next_steps,
+    estimate_effort, categorize_finding,
+)
 from .explainer import explain_module
 
 
@@ -28,12 +31,20 @@ def generate_report(directory, output_path=None, language=None, workers=8):
         graph, all_facts = build_dependency_graph(directory)
     lines = ["# greybox Assessment Report", f"\nDirectory analyzed: `{directory}`\n"]
 
-    lines.append("## Top Risks — Read This First\n")
-    lines.append("_The 5 riskiest modules, ranked lowest-confidence-first. On a real "
-                  "codebase this is the whole point: one ranked list instead of reading "
-                  "every file's answer yourself._\n")
+    lines.append("## What To Do Next — Easiest Wins First\n")
+    lines.append("_Your highest-risk modules, ordered easy-to-hard within that risk "
+                  "pool - quick, low-effort fixes first, so you build momentum before "
+                  "tackling anything bigger. Not a full roadmap - see BACKLOG.md if "
+                  "you want one built._\n")
     top_risk_placeholder_index = len(lines)
     lines.append("")  # filled in after facts are computed, see below
+
+    lines.append("## Findings Breakdown\n")
+    findings_placeholder_index = len(lines)
+    lines.append("")  # filled in below
+    lines.append("_Not a security vulnerability scan (no CVE checks, no exploit "
+                  "pattern matching) - this is a tally of the deterministic risk "
+                  "signals this tool actually looks for._\n")
 
     lines.append("## Dependency Graph (real, extracted from imports)\n")
     lines.append("```mermaid\ngraph TD")
@@ -70,12 +81,36 @@ def generate_report(directory, output_path=None, language=None, workers=8):
         ((name, confidence_score(facts)) for name, facts in all_facts.items()),
         key=lambda x: x[1],
     )
-    top_n = ranked[:5]
+    # Take the highest-risk pool, then present THOSE easy-to-hard (lowest
+    # effort first) - a quick win is a better place to start than the
+    # single hardest problem, even among your riskiest files. Same logic
+    # as the web demo (shared.js renderPriorityBanner), kept in sync.
+    risk_pool = ranked[:8]
+    easy_to_hard = sorted(risk_pool, key=lambda x: estimate_effort(all_facts[x[0]]))[:5]
     risk_lines = []
-    for i, (name, conf) in enumerate(top_n):
-        first_step = suggest_next_steps(all_facts[name])[0]
-        risk_lines.append(f"{i+1}. `{name}{ext}` — {conf}/100 confidence. **First action:** {first_step}")
+    for i, (name, conf) in enumerate(easy_to_hard):
+        facts = all_facts[name]
+        steps = suggest_next_steps(facts)
+        risk_lines.append(
+            f"{i+1}. `{name}{ext}` — {conf}/100 confidence, {len(steps)} step(s) to fix. "
+            f"**First action:** {steps[0]}"
+        )
     lines[top_risk_placeholder_index] = "\n".join(risk_lines) + "\n"
+
+    findings_tally = {"flagged_comment": 0, "silent_failure": 0, "undocumented_constants": 0, "clean": 0}
+    for facts in all_facts.values():
+        findings_tally[categorize_finding(facts)] += 1
+    tally_labels = {
+        "flagged_comment": "Flagged risky comments",
+        "silent_failure": "Silent failure handling",
+        "undocumented_constants": "Undocumented constants",
+        "clean": "No red flags found",
+    }
+    tally_lines = [
+        f"- **{count}** {tally_labels[key]}"
+        for key, count in findings_tally.items() if count
+    ]
+    lines[findings_placeholder_index] = "\n".join(tally_lines) + "\n"
 
     for name, facts in all_facts.items():
         stored_facts, explanation = results[name]
