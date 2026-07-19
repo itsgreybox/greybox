@@ -35,7 +35,9 @@ def generate_report(directory, output_path=None, language=None):
     lines.append("```\n")
 
     lines.append("## Module-by-Module Findings\n")
-    for name, facts in all_facts.items():
+    total = len(all_facts)
+    for idx, (name, facts) in enumerate(all_facts.items(), 1):
+        print(f"[{idx}/{total}] analyzing {name}...", flush=True)
         conf = confidence_score(facts)
         with open(facts.path) as f:
             src = f.read()
