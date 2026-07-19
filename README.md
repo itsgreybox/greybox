@@ -88,7 +88,7 @@ codebase directory
 Early proof of concept. Supports Python and Java (auto-detected from
 the folder contents). .NET/C# is a possible future target, held off
 deliberately until Python + Java are validated with real users —
-see `BACKLOG.md`.
+see `docs/BACKLOG.md`.
 
 A static demo page (no backend, deployable to Vercel in ~2 minutes)
 showing a real run's output lives in `/demo` — see `demo/README.md`.
@@ -96,3 +96,9 @@ showing a real run's output lives in `/demo` — see `demo/README.md`.
 ## License
 
 Apache 2.0 — see `LICENSE`.
+
+## Documentation
+
+- [Setup](docs/SETUP.md) · [Architecture](docs/ARCHITECTURE.md) · [Troubleshooting](docs/TROUBLESHOOTING.md)
+- [Backlog](docs/BACKLOG.md) · [Feature checklist](docs/FEATURE_CHECKLIST.md) · [Launch checklist](docs/LAUNCH_CHECKLIST.md)
+- [Contributing](CONTRIBUTING.md) · [Security](SECURITY.md) · [Claude/AI context](docs/CLAUDE.md)

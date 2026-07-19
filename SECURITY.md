@@ -5,7 +5,7 @@
 As of this version, if `ANTHROPIC_API_KEY` is set in your environment,
 `greybox` **automatically** sends the full source of every analyzed
 file to the Claude API, with no redaction and no opt-in flag. This is
-a known gap, tracked in `BACKLOG.md` Phase 1 and `FEATURE_CHECKLIST.md`.
+a known gap, tracked in `docs/BACKLOG.md` Phase 1 and `docs/FEATURE_CHECKLIST.md`.
 
 **Do not run this against real proprietary or customer codebases until:**
 1. An explicit `--explain` opt-in flag exists (no silent API calls), and
