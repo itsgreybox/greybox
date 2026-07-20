@@ -38,6 +38,17 @@ No code rewriting. No migration execution. No full roadmap generation.
 Those are real, valuable, and better done by people and firms who
 specialize in execution. `greybox` is the assessment layer only.
 
+## Your code never leaves your network
+
+This runs entirely on your own machine, CI, or cloud environment.
+There's no hosted service, no upload step, and no third party in the
+loop — the AI explanation step is the only part that calls an
+external API, and only if you set your own `ANTHROPIC_API_KEY`. Skip
+that and you still get the full dependency graph and confidence
+scoring with zero data leaving your infrastructure. Built with
+regulated industries (banking, healthcare) in mind, where sending
+code to any external SaaS is a non-starter.
+
 ## Quickstart
 
 ```bash
