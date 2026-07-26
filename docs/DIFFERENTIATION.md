@@ -1,5 +1,24 @@
 # Why greybox, not just Claude/ChatGPT directly — the actual "so what"
 
+## Correction, added after real user feedback (July 2026)
+
+Earlier research claimed "no self-serve competitor found" for legacy
+code assessment. That was wrong — a real person testing this pointed
+to **Swimm** (swimm.io), a legitimate, funded, self-serve competitor:
+free tier + $29/mo Pro + enterprise pricing, Gartner Cool Vendor 2024,
+SOC 2/ISO 27001 compliant, IDE-integrated documentation and dependency
+mapping for legacy code. This is a real, direct competitor and should
+be named honestly, not minimized.
+
+**The honest differentiation that still holds:** Swimm is built for a
+team already committed to documenting and maintaining a codebase
+long-term — it's priced per seat, requires signup, and is an ongoing
+tool embedded in your IDE. greybox is for the moment *before* that
+commitment — free, no signup, a 2-minute look to decide whether a
+system is even worth the investment of a Swimm-style tool, a full
+migration, or neither. Different moment in the decision, not a
+head-to-head feature fight.
+
 ## The real test that answers this
 
 Ran `greybox` against `rides-java-sdk` (Uber's real public SDK, 84
