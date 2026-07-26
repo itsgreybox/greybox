@@ -49,6 +49,22 @@ scoring with zero data leaving your infrastructure. Built with
 regulated industries (banking, healthcare) in mind, where sending
 code to any external SaaS is a non-starter.
 
+## Portfolio mode - scan multiple repos at once
+
+If you've got a folder containing multiple repos (e.g. everything
+cloned from a GitHub org), point `--portfolio` at the parent folder:
+
+```bash
+greybox /path/to/org-repos --portfolio --output portfolio_report.md
+```
+
+Every immediate subdirectory is scanned as its own repo. Real full
+scan of every file, no sampling — this is the difference between this
+and the web demo's org-scan feature, which samples a few files per
+repo to stay within GitHub API rate limits. Locally, there's no rate
+limit, so you get the real thing across your whole portfolio, ranked
+into Quick Wins / Bigger Efforts / Lower Priority.
+
 ## Quickstart
 
 ```bash

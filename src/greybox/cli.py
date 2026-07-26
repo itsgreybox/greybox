@@ -1,6 +1,7 @@
 import argparse
 import sys
 from .report import generate_report, generate_json
+from .portfolio import generate_portfolio_report
 
 
 def main():
@@ -10,9 +11,18 @@ def main():
         "assessment: dependency graph, risk flags, and an honest confidence "
         "score per module.",
     )
-    parser.add_argument("directory", help="Path to the codebase directory to analyze")
+    parser.add_argument("directory", help="Path to the codebase directory to analyze. "
+                         "With --portfolio, this is the PARENT directory containing "
+                         "multiple repos as subdirectories.")
     parser.add_argument(
         "--output", "-o", default="greybox_report.md", help="Where to write the report"
+    )
+    parser.add_argument(
+        "--portfolio", action="store_true",
+        help="Scan every immediate subdirectory as its own repo and produce a combined "
+             "roadmap (Quick Wins / Bigger Efforts / Lower Priority) across all of them. "
+             "Real full scan of every file, no sampling - this only works locally, so "
+             "point it at a folder where you've already cloned an org's repos.",
     )
     parser.add_argument(
         "--format", choices=["md", "json"], default="md",
@@ -25,6 +35,13 @@ def main():
              "faster but risks hitting API rate limits on very large codebases.",
     )
     args = parser.parse_args()
+
+    if args.portfolio:
+        output = args.output if args.output != "greybox_report.md" else "greybox_portfolio_report.md"
+        report = generate_portfolio_report(args.directory, output)
+        print(f"Portfolio report written to {output}\n")
+        print(report[:800] + "\n...\n(see full report in the output file)")
+        return
 
     if args.format == "json":
         output = args.output if args.output != "greybox_report.md" else "greybox_report.json"
