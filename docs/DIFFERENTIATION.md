@@ -19,6 +19,40 @@ system is even worth the investment of a Swimm-style tool, a full
 migration, or neither. Different moment in the decision, not a
 head-to-head feature fight.
 
+## OpenRewrite - a different lane, not a competitor
+
+Same reviewer also pointed to OpenRewrite: a real, mature, deterministic
+recipe engine with thousands of prebuilt transformations (framework
+upgrades, CVE fixes), used under the hood by Amazon Q and GitHub
+Copilot. It's genuinely better than anything greybox could build for
+*known, repeatable* patterns. But recipes require the pattern to
+already be cataloged across many codebases — they can't help with a
+bespoke, undocumented function specific to one system, because nothing
+repeatable can be cataloged from a one-off. Complementary lanes, not
+competing ones.
+
+## What greybox honestly can't do
+
+Pushed further, the same reviewer raised the hardest version of this:
+context is often proprietary — it lives in someone's head, or a
+contract from a decade ago that was never written down. **No tool,
+including this one, can recover context that was never captured
+anywhere machine-readable.** greybox doesn't solve that. What it does
+is narrower and still real: it tells you *exactly where* you still
+need a person who remembers, via the confidence score, instead of that
+person having to read every file to find out.
+
+**Separately, a real architecture question worth sitting with (not
+yet acted on):** the risk-flagging rules (magic numbers, bare-except
+detection) are hand-written heuristics, not AI-judged. The same
+reviewer described replacing brittle regex with AI prompts for a
+different problem (parsing donation receipts) and getting better
+accuracy because the AI had more context. The same fix might apply
+here eventually — feed the AI accurate AST-derived structure and let
+it judge risk directly, instead of expanding hardcoded rules forever.
+Not built yet; noted in `BACKLOG.md` as a v2 idea, revisit after real
+usage tells us which risk patterns actually matter in practice.
+
 ## The real test that answers this
 
 Ran `greybox` against `rides-java-sdk` (Uber's real public SDK, 84
