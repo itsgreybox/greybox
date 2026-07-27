@@ -12,7 +12,7 @@ def _detect_language(directory):
     """Pick the analyzer based on what's actually in the folder, rather
     than asking the user to specify - most real legacy repos are one
     dominant language, so a simple file-extension majority is enough."""
-    py_count = java_count = js_count = 0
+    py_count = java_count = js_count = cs_count = cobol_count = 0
     for root, _, files in os.walk(directory):
         for f in files:
             if f.endswith('.py'):
@@ -21,7 +21,14 @@ def _detect_language(directory):
                 java_count += 1
             elif f.endswith(('.js', '.jsx')):
                 js_count += 1
-    counts = {'python': py_count, 'java': java_count, 'javascript': js_count}
+            elif f.endswith('.cs'):
+                cs_count += 1
+            elif f.upper().endswith(('.CBL', '.COB', '.CPY')):
+                cobol_count += 1
+    counts = {
+        'python': py_count, 'java': java_count, 'javascript': js_count,
+        'csharp': cs_count, 'cobol': cobol_count,
+    }
     return max(counts, key=counts.get) if any(counts.values()) else 'python'
 
 
@@ -33,9 +40,19 @@ def generate_report(directory, output_path=None, language=None, workers=8):
     elif language == 'javascript':
         from .javascript_analyzer import build_js_dependency_graph
         graph, all_facts = build_js_dependency_graph(directory)
+    elif language == 'csharp':
+        from .csharp_analyzer import build_csharp_dependency_graph
+        graph, all_facts = build_csharp_dependency_graph(directory)
+    elif language == 'cobol':
+        from .cobol_analyzer import build_cobol_dependency_graph
+        graph, all_facts = build_cobol_dependency_graph(directory)
     else:
         graph, all_facts = build_dependency_graph(directory)
     lines = ["# greybox Assessment Report", f"\nDirectory analyzed: `{directory}`\n"]
+    if language in ('csharp', 'cobol'):
+        lines.append(f"**Note:** {language} support is regex/heuristic-based, not a real "
+                      f"AST parser like Python, Java, or JavaScript get. Treat findings here "
+                      f"as a rougher first pass - more false positives/negatives possible.\n")
 
     lines.append("## What To Do Next — Easiest Wins First\n")
     lines.append("_Your highest-risk modules, ordered easy-to-hard within that risk "
@@ -82,7 +99,7 @@ def generate_report(directory, output_path=None, language=None, workers=8):
             done += 1
             print(f"[{done}/{total}] analyzed {name}", flush=True)
 
-    ext = {'java': '.java', 'javascript': '.js'}.get(language, '.py')
+    ext = {'java': '.java', 'javascript': '.js', 'csharp': '.cs', 'cobol': '.cbl'}.get(language, '.py')
     ranked = sorted(
         ((name, confidence_score(facts)) for name, facts in all_facts.items()),
         key=lambda x: x[1],
@@ -161,6 +178,12 @@ def generate_json(directory, output_path=None, language=None):
     elif language == 'javascript':
         from .javascript_analyzer import build_js_dependency_graph
         graph, all_facts = build_js_dependency_graph(directory)
+    elif language == 'csharp':
+        from .csharp_analyzer import build_csharp_dependency_graph
+        graph, all_facts = build_csharp_dependency_graph(directory)
+    elif language == 'cobol':
+        from .cobol_analyzer import build_cobol_dependency_graph
+        graph, all_facts = build_cobol_dependency_graph(directory)
     else:
         graph, all_facts = build_dependency_graph(directory)
 

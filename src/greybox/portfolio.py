@@ -21,6 +21,12 @@ def _scan_one_repo(path):
     elif language == 'javascript':
         from .javascript_analyzer import build_js_dependency_graph
         graph, all_facts = build_js_dependency_graph(path)
+    elif language == 'csharp':
+        from .csharp_analyzer import build_csharp_dependency_graph
+        graph, all_facts = build_csharp_dependency_graph(path)
+    elif language == 'cobol':
+        from .cobol_analyzer import build_cobol_dependency_graph
+        graph, all_facts = build_cobol_dependency_graph(path)
     else:
         graph, all_facts = build_dependency_graph(path)
 

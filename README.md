@@ -112,11 +112,12 @@ codebase directory
 
 ## Status
 
-Supports Python, Java, and JavaScript (ES5/ES6 - TypeScript and JSX
-are not yet reliably parsed, see `javascript_analyzer.py`). Auto-detected
-from the folder contents. C#/.NET is a possible future target, held
-off deliberately until real usage tells us it's worth building — see
-`docs/BACKLOG.md`.
+Supports Python, Java, and JavaScript with real parsers (ES5/ES6 -
+TypeScript and JSX are not yet reliably parsed). Also supports C# and
+COBOL, but those two use regex/heuristics, not a real AST parser - no
+mature pure-Python parser exists for either, so treat those results as
+a rougher first pass, stated honestly in the report itself, not hidden.
+Language auto-detected from folder contents.
 
 A static demo page (no backend, deployable to Vercel in ~2 minutes)
 showing a real run's output lives in `/demo` — see `demo/README.md`.
