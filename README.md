@@ -112,10 +112,11 @@ codebase directory
 
 ## Status
 
-Early proof of concept. Supports Python and Java (auto-detected from
-the folder contents). .NET/C# is a possible future target, held off
-deliberately until Python + Java are validated with real users —
-see `docs/BACKLOG.md`.
+Supports Python, Java, and JavaScript (ES5/ES6 - TypeScript and JSX
+are not yet reliably parsed, see `javascript_analyzer.py`). Auto-detected
+from the folder contents. C#/.NET is a possible future target, held
+off deliberately until real usage tells us it's worth building — see
+`docs/BACKLOG.md`.
 
 A static demo page (no backend, deployable to Vercel in ~2 minutes)
 showing a real run's output lives in `/demo` — see `demo/README.md`.

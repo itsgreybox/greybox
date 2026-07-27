@@ -12,6 +12,7 @@ license = { text = "Apache-2.0" }
 dependencies = [
     "anthropic>=0.40.0",
     "javalang>=0.13.0",
+    "esprima>=4.0.1",
 ]
 
 [project.optional-dependencies]

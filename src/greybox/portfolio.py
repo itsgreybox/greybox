@@ -18,6 +18,9 @@ def _scan_one_repo(path):
     if language == 'java':
         from .java_analyzer import build_java_dependency_graph
         graph, all_facts = build_java_dependency_graph(path)
+    elif language == 'javascript':
+        from .javascript_analyzer import build_js_dependency_graph
+        graph, all_facts = build_js_dependency_graph(path)
     else:
         graph, all_facts = build_dependency_graph(path)
 

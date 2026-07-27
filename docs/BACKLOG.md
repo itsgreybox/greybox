@@ -19,6 +19,10 @@ actually needs to happen next, not what's most fun to build.
 
 ## Phase 0.5 — Get a real "would you pay" signal (do this before anything else)
 
+- [x] JavaScript support added (ES5/ES6 via esprima, real AST parsing,
+      tested end-to-end: CLI, portfolio mode, and the report format
+      all work). TypeScript/JSX explicitly not supported yet - noted
+      honestly in the code and README, not silently broken.
 - [ ] Send 3-5 NEW people a sharper question than the first round:
       not "is this useful" but "would you pay $X/month for this,
       yes or no." Uncomfortable to send, far more informative.
@@ -30,6 +34,24 @@ actually needs to happen next, not what's most fun to build.
 
 ## Phase 1 — Public launch prep
 
+- [ ] **Privacy policy / basic terms page.** The contact form now
+      collects real names and emails via Formspree. Before a public
+      launch, have at minimum a one-paragraph statement on what
+      happens to that data - this is a real gap, not optional once
+      strangers (not just 8 known contacts) start using the form.
+- [ ] **PyPI packaging.** Right now installing requires cloning the
+      repo (`pip install -e .`). Publishing to PyPI so people can
+      `pip install greybox` directly removes real friction for a
+      public launch - currently missing.
+- [ ] **Org-scan pagination.** `MAX_REPOS = 25` in the live demo's
+      org-scan silently caps larger orgs with no indication more
+      exist beyond page 1. Fine for a demo, but worth flagging
+      honestly on the page if launching publicly, since some real
+      companies have 100+ repos.
+- [ ] **Basic SEO/social preview tags** on the demo pages (title,
+      description, Open Graph image) - currently missing, so a
+      shared link on LinkedIn/Twitter/Show HN will look bare instead
+      of showing a preview card.
 - [ ] Decide launch venue: Show HN, a relevant subreddit
       (r/programming, r/ExperiencedDevs), or a public LinkedIn post -
       each has a different crowd, pick deliberately, not all at once.

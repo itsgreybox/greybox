@@ -12,14 +12,17 @@ def _detect_language(directory):
     """Pick the analyzer based on what's actually in the folder, rather
     than asking the user to specify - most real legacy repos are one
     dominant language, so a simple file-extension majority is enough."""
-    py_count = java_count = 0
+    py_count = java_count = js_count = 0
     for root, _, files in os.walk(directory):
         for f in files:
             if f.endswith('.py'):
                 py_count += 1
             elif f.endswith('.java'):
                 java_count += 1
-    return 'java' if java_count > py_count else 'python'
+            elif f.endswith(('.js', '.jsx')):
+                js_count += 1
+    counts = {'python': py_count, 'java': java_count, 'javascript': js_count}
+    return max(counts, key=counts.get) if any(counts.values()) else 'python'
 
 
 def generate_report(directory, output_path=None, language=None, workers=8):
@@ -27,6 +30,9 @@ def generate_report(directory, output_path=None, language=None, workers=8):
     if language == 'java':
         from .java_analyzer import build_java_dependency_graph
         graph, all_facts = build_java_dependency_graph(directory)
+    elif language == 'javascript':
+        from .javascript_analyzer import build_js_dependency_graph
+        graph, all_facts = build_js_dependency_graph(directory)
     else:
         graph, all_facts = build_dependency_graph(directory)
     lines = ["# greybox Assessment Report", f"\nDirectory analyzed: `{directory}`\n"]
@@ -76,7 +82,7 @@ def generate_report(directory, output_path=None, language=None, workers=8):
             done += 1
             print(f"[{done}/{total}] analyzed {name}", flush=True)
 
-    ext = '.java' if language == 'java' else '.py'
+    ext = {'java': '.java', 'javascript': '.js'}.get(language, '.py')
     ranked = sorted(
         ((name, confidence_score(facts)) for name, facts in all_facts.items()),
         key=lambda x: x[1],
@@ -152,6 +158,9 @@ def generate_json(directory, output_path=None, language=None):
     if language == 'java':
         from .java_analyzer import build_java_dependency_graph
         graph, all_facts = build_java_dependency_graph(directory)
+    elif language == 'javascript':
+        from .javascript_analyzer import build_js_dependency_graph
+        graph, all_facts = build_js_dependency_graph(directory)
     else:
         graph, all_facts = build_dependency_graph(directory)
 
