@@ -16,7 +16,7 @@ import re
 from .analyzer import ModuleFacts
 
 _PARAGRAPH_PATTERN = re.compile(r'^\s{0,7}([A-Z0-9][A-Z0-9\-]{2,})\s*\.\s*$', re.MULTILINE)
-_PERFORM_PATTERN = re.compile(r'PERFORM\s+([A-Z0-9][A-Z0-9\-]{2,})', re.IGNORECASE)
+_COPY_PATTERN = re.compile(r'\bCOPY\s+([A-Z0-9][A-Z0-9\-]*)', re.IGNORECASE)
 _RESERVED_START = {'IF', 'ELSE', 'END-IF', 'MOVE', 'PERFORM', 'DISPLAY', 'STOP', 'GOBACK'}
 
 
@@ -37,9 +37,10 @@ def analyze_cobol_file(path):
         if m.group(1).upper() not in _RESERVED_START
     ]
     facts.functions = paragraphs
-    facts.imports_from = list(set(
-        m.group(1) for m in _PERFORM_PATTERN.finditer(src) if m.group(1).upper() not in _RESERVED_START
-    ))
+    # COPY is COBOL's real cross-file dependency (copybooks) - PERFORM only
+    # calls a paragraph within the SAME file, so it was wrongly used here
+    # before and produced an always-empty dependency graph.
+    facts.imports_from = list(set(_COPY_PATTERN.findall(src)))
     facts.branch_count = len(re.findall(r'\bIF\b', src, re.IGNORECASE))
     facts.has_bare_except = False  # COBOL's error handling doesn't map cleanly - not scored
 

@@ -33,6 +33,6 @@ def test_analyze_cobol_finds_paragraphs():
     assert "LEGACY-HOOK" in facts.functions
 
 
-def test_analyze_cobol_finds_perform_dependencies():
+def test_analyze_cobol_finds_copy_dependencies():
     facts = analyze_cobol_file(COBOL_SAMPLE)
-    assert "CALCULATE-FEE" in facts.imports_from
+    assert "LEGACY-RATES" in facts.imports_from
