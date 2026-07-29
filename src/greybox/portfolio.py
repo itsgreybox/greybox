@@ -27,6 +27,9 @@ def _scan_one_repo(path):
     elif language == 'cobol':
         from .cobol_analyzer import build_cobol_dependency_graph
         graph, all_facts = build_cobol_dependency_graph(path)
+    elif language == 'go':
+        from .go_analyzer import build_go_dependency_graph
+        graph, all_facts = build_go_dependency_graph(path)
     else:
         graph, all_facts = build_dependency_graph(path)
 

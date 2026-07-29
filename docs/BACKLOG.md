@@ -80,6 +80,13 @@ actually needs to happen next, not what's most fun to build.
 
 ## v2 ideas — don't build yet, revisit after real usage signal
 
+- [ ] **Jira integration.** Explicitly deferred, not forgotten. Real
+      integration needs Atlassian OAuth app registration, secure
+      token handling, and a security review - genuinely multi-day
+      work. Building a placeholder that doesn't really work would be
+      worse than not having it. Revisit once there's a real user
+      asking for this specifically, not before.
+
 - [ ] Replace hand-written risk heuristics with AI making the risk
       judgment directly, given accurate AST-derived structure as
       context - Ron's regex-to-AI-prompt story suggests this may
