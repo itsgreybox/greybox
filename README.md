@@ -130,4 +130,5 @@ Apache 2.0 — see `LICENSE`.
 
 - [Setup](docs/SETUP.md) · [Architecture](docs/ARCHITECTURE.md) · [Troubleshooting](docs/TROUBLESHOOTING.md)
 - [Backlog](docs/BACKLOG.md) · [Feature checklist](docs/FEATURE_CHECKLIST.md) · [Launch checklist](docs/LAUNCH_CHECKLIST.md)
+- [Business model](docs/BUSINESS_MODEL.md) · [Differentiation vs other tools](docs/DIFFERENTIATION.md)
 - [Contributing](CONTRIBUTING.md) · [Security](SECURITY.md) · [Claude/AI context](docs/CLAUDE.md)
