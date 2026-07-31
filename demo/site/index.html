@@ -1,0 +1,132 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>greybox — see into the black box</title>
+<link rel="icon" type="image/png" href="assets/favicon.png">
+<link rel="apple-touch-icon" href="assets/apple-touch-icon.png">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;600;700&family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="style.css">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/mermaid/10.9.0/mermaid.min.js"></script>
+</head>
+<body>
+
+<div id="nav-placeholder"></div>
+
+<div class="hero" style="overflow:hidden;">
+  <div class="wrap">
+    <div class="hero-grid">
+      <div>
+        <div class="eyebrow">greybox — legacy assessment tool</div>
+        <h1>Before you spend $500K figuring out what an old system does —<br><span>see into the black box first.</span></h1>
+        <p class="sub">Point greybox at an undocumented codebase. In minutes, get a real dependency graph, risk flags, and a concrete "what to do next" for every risky file — the same first-look work consultants charge $15K–$180K for.</p>
+        <div class="cta-row">
+          <a class="cta ghost" href="sample.html" style="position:relative;">See a sample report<span style="position:absolute; top:-11px; right:-10px; background:var(--good); color:#06131A; font-size:10px; font-weight:700; padding:2px 8px; border-radius:999px; letter-spacing:0.03em;">START HERE</span></a>
+          <a class="cta filled" href="live.html">Scan a real GitHub repo →</a>
+        </div>
+        <p style="font-size:12.5px; color:var(--muted); margin-top:10px;">New here? Start with the sample — no setup, no repo needed, see the full report format in 10 seconds.</p>
+      </div>
+      <div style="text-align:right;">
+        <img src="assets/hero-icon.png" alt="" style="width:100%; max-width:360px;">
+        <div style="font-family:'IBM Plex Mono', monospace; font-size:12.5px; color:var(--muted); margin-top:12px;">greybox sees into the black box,<br>so you don't have to guess.</div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<section class="tight" style="border-bottom:1px solid var(--line);">
+  <div class="wrap">
+    <h2>Your code never has to leave your network</h2>
+    <p class="section-note">The live scanner works on public repos only. Most real legacy code isn't public, and regulated companies (banks, healthcare) can't send code to a third-party SaaS at all — that's what the CLI is for.</p>
+    <div class="card-grid">
+      <div class="feature-card"><span class="icon">💻</span><b>Runs on your machine</b><p>The open-source CLI runs locally — private GitHub, GitLab, Bitbucket, or code that's never been in any hosted repo at all. Nothing is uploaded anywhere by default.</p></div>
+      <div class="feature-card"><span class="icon">🏦</span><b>Built for regulated industries</b><p>Banks, healthcare, government — run it in your own CI, your own cloud, your own on-prem environment. Your data stays inside your infrastructure, always.</p></div>
+      <div class="feature-card"><span class="icon">🔑</span><b>You control the AI call</b><p>The AI explanation step only runs if you set your own API key. Skip it entirely and you still get the full dependency graph and confidence scoring with zero data leaving your machine.</p></div>
+    </div>
+  </div>
+</section>
+
+<section style="border-bottom:none;">
+  <div class="wrap">
+    <h2>Two real gaps in the tools you'd otherwise reach for</h2>
+    <p class="section-note">Not made up to sound good — checked directly against Swimm and OpenRewrite, two real, mature tools in this space.</p>
+    <div class="card-grid">
+      <div class="feature-card">
+        <span class="icon">💸</span>
+        <b>Free, no matter your team size</b>
+        <p>Swimm is $29/seat/month — real money for a 10-15 person team, $3,000-5,000/year, before you know if it's even the right tool. greybox is $0, regardless of how big your team is.</p>
+      </div>
+      <div class="feature-card">
+        <span class="icon">🧩</span>
+        <b>Handles what OpenRewrite structurally can't</b>
+        <p>OpenRewrite's recipes only work on known, repeatable patterns — a framework upgrade looks the same everywhere. A bespoke, undocumented function specific to your system has no recipe, by definition. That's exactly where greybox is built to help.</p>
+      </div>
+    </div>
+    <div class="cta-row" style="margin-top:20px;">
+      <a class="cta" href="why.html">See the full comparison, with real numbers →</a>
+    </div>
+  </div>
+</section>
+
+<section id="industry" class="tight">
+  <div class="wrap">
+    <h2>This isn't a niche problem</h2>
+    <p class="section-note">Real, cited research — not invented stats.</p>
+    <div id="statCards"></div>
+
+    <h2 style="margin-top:32px;">When this goes wrong, it goes wrong at scale</h2>
+    <p class="section-note">Four real, public incidents — none of these companies thought their legacy system was a ticking clock, until it was.</p>
+    <div id="incidentChart"></div>
+  </div>
+</section>
+
+<section style="border-bottom:none;">
+  <div class="wrap">
+    <h2>"Legacy" doesn't mean abandoned</h2>
+    <p class="section-note">The most common misconception about this tool: that it's only for dead, untouched systems. Most real legacy pain isn't that — it's code your team ships to every week, where nobody left fully understands why it works the way it does.</p>
+    <div class="card-grid">
+      <div class="feature-card"><span class="icon">🔧</span><b>Before a risky change</b><p>You're about to touch a module you didn't write, that's been "working fine" for years. Scan first — know what's fragile before you edit it, not after it breaks in production.</p></div>
+      <div class="feature-card"><span class="icon">🧭</span><b>Onboarding a new engineer</b><p>Instead of "ask Dave, he's been here longest," give them a real starting map of what's risky, what's clean, and what to be careful with.</p></div>
+      <div class="feature-card"><span class="icon">🚨</span><b>After an incident</b><p>"Why did changing the notification service break the payment flow" is a legacy-understanding problem, not a bug — even on a system your team ships to weekly.</p></div>
+      <div class="feature-card"><span class="icon">📅</span><b>Quarterly health check</b><p>Run it periodically on core modules, not just once before a migration decision — a confidence score that drops over time is an early warning.</p></div>
+    </div>
+  </div>
+</section>
+
+<section style="border-bottom:none;">
+  <div class="wrap">
+    <h2>Three things to check out</h2>
+    <div class="card-grid">
+      <a class="feature-card" href="sample.html" style="text-decoration:none; display:block;"><span class="icon">📄</span><b>Sample report →</b><p>A fixed 10-file example, so you can see the full report format without scanning anything.</p></a>
+      <a class="feature-card" href="live.html" style="text-decoration:none; display:block;"><span class="icon">🔍</span><b>Try it live →</b><p>Paste any public GitHub repo URL and get a real scan — real files, real dependency graph, real findings.</p></a>
+      <a class="feature-card" href="why.html" style="text-decoration:none; display:block;"><span class="icon">💬</span><b>Why not just Claude →</b><p>The honest answer to "aren't you just calling the API anyone can call," with real numbers.</p></a>
+    </div>
+  </div>
+</section>
+
+<footer>
+  <div class="wrap">
+    Built by <a href="https://arunkmishra.com" target="_blank">Arun Mishra</a>.
+    <br>Mail me at <a href="mailto:arun@arunkmishra.com">arun@arunkmishra.com</a>
+    <br><span style="color:var(--muted); font-size:12px;">&copy; 2026 Arun Mishra</span>
+  </div>
+</footer>
+
+<script src="sample-data.js"></script>
+<script src="shared.js"></script>
+<script>
+  mermaid.initialize({ startOnLoad: false, theme: 'dark' });
+  document.getElementById('nav-placeholder').outerHTML = renderNavHtml('index.html');
+
+  document.getElementById('statCards').innerHTML = renderStatCards([
+    { big: '$21.9B → $37.3B', label: 'Legacy modernization market, 2026 → 2030', source: 'Industry market research' },
+    { big: '~33%', label: "Developer time lost weekly to technical debt", source: 'Stripe Developer Coefficient survey' },
+    { big: '43%+', label: 'Of banking systems still run on COBOL', source: 'Reuters, cited industry-wide' },
+  ]);
+  document.getElementById('incidentChart').innerHTML = renderIncidentChart();
+</script>
+<script defer src="/_vercel/insights/script.js"></script>
+</body>
+</html>

@@ -1,0 +1,93 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Pricing — greybox</title>
+<link rel="icon" type="image/png" href="assets/favicon.png">
+<link rel="apple-touch-icon" href="assets/apple-touch-icon.png">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;600;700&family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+<div id="nav-placeholder"></div>
+
+<div class="page-header">
+  <div class="wrap">
+    <div class="eyebrow">Early access</div>
+    <h1>Pricing</h1>
+    <p class="sub">Free for solo use. Team and Enterprise plans built around what you actually need.</p>
+  </div>
+</div>
+
+<section style="border-bottom:none;">
+  <div class="wrap">
+    <div class="pricing-grid">
+
+      <div class="price-pillar">
+        <div class="tier-name">Free</div>
+        <div class="tier-tagline">Self-serve, forever</div>
+        <div class="tier-price">$0</div>
+        <div class="tier-price-note">No card, no signup for the CLI</div>
+        <ul class="tier-features">
+          <li>Live web scanner — up to 100 files per scan</li>
+          <li>Open-source CLI — full-repo scans, no file cap, real AST parsing for Python/Java/JavaScript</li>
+          <li>Web scanner: 7 languages (Python/Java/JavaScript/Vue/C#/COBOL/Go), regex-based. CLI: 6 languages, no Vue yet</li>
+          <li>Org-wide triage scan — quick "which repo first" pointer</li>
+          <li>Dependency graph, confidence scoring, suggested next steps</li>
+        </ul>
+        <a class="cta" href="live.html">Start scanning →</a>
+      </div>
+
+      <div class="price-pillar featured">
+        <div class="tier-name">Team</div>
+        <div class="tier-tagline">For engineering teams acting on this</div>
+        <div class="tier-price">Custom</div>
+        <div class="tier-price-note">Contact us for a quote</div>
+        <ul class="tier-features">
+          <li>Everything in Free</li>
+          <li class="locked">Full-depth org scan — every file, every repo, real confidence scores</li>
+          <li class="locked">AI explanations at scale — not capped to 3 files per scan</li>
+          <li class="locked">Roadmap &amp; cost estimates tuned to your team</li>
+          <li class="locked">Priority support sequencing this into an actual plan</li>
+        </ul>
+        <a class="cta filled" href="contact.html">Tell me what you'd need →</a>
+      </div>
+
+      <div class="price-pillar">
+        <div class="tier-name">Enterprise</div>
+        <div class="tier-tagline">Regulated industries, private infrastructure</div>
+        <div class="tier-price">Custom</div>
+        <div class="tier-price-note">Talk to us directly</div>
+        <ul class="tier-features">
+          <li>Everything in Team</li>
+          <li class="locked">Private/on-prem or your-cloud deployment — code never leaves your network</li>
+          <li class="locked">SOC 2 / compliance-ready deployment options</li>
+          <li class="locked">Dedicated support and onboarding</li>
+          <li class="locked">Custom SLA</li>
+        </ul>
+        <a class="cta" href="contact.html">Talk to us →</a>
+      </div>
+
+    </div>
+    <p class="scan-note" style="margin-top:24px;">Not sure which tier fits? Tell us what your team needs and we'll figure out the right plan together.</p>
+  </div>
+</section>
+
+<footer>
+  <div class="wrap">
+    Built by <a href="https://arunkmishra.com" target="_blank">Arun Mishra</a>.
+    <br>Mail me at <a href="mailto:arun@arunkmishra.com">arun@arunkmishra.com</a>
+    <br><span style="color:var(--muted); font-size:12px;">&copy; 2026 Arun Mishra</span>
+  </div>
+</footer>
+
+<script src="shared.js"></script>
+<script>
+  document.getElementById('nav-placeholder').outerHTML = renderNavHtml('pricing.html');
+</script>
+<script defer src="/_vercel/insights/script.js"></script>
+</body>
+</html>

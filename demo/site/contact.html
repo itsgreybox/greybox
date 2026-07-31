@@ -1,0 +1,97 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Contact — greybox</title>
+<link rel="icon" type="image/png" href="assets/favicon.png">
+<link rel="apple-touch-icon" href="assets/apple-touch-icon.png">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;600;700&family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+<div id="nav-placeholder"></div>
+
+<div class="page-header">
+  <div class="wrap">
+    <div class="eyebrow">Get in touch</div>
+    <h1>Tell me if this is useful</h1>
+    <p class="sub">Real feedback, questions, or "this doesn't solve my problem because X" — all genuinely welcome.</p>
+  </div>
+</div>
+
+<section style="border-bottom:none;">
+  <div class="wrap">
+    <div class="two-col">
+      <div class="qa-tower" style="background:#06131A; border-color:var(--cyan);">
+        <h2 style="font-size:20px; margin-top:0;">Prefer email?</h2>
+        <p class="section-note">I read every message personally. Most replies go out within 1-2 business days.</p>
+        <p class="section-note">Want to share more detail, a repo, or a screenshot? Just attach it to an email directly — no upload needed here.</p>
+        <div style="border-top:1px solid var(--line); margin:16px 0;"></div>
+        <a href="mailto:arun@arunkmishra.com" style="color:var(--cyan); font-weight:600; font-size:15px; text-decoration:none;">✉ arun@arunkmishra.com</a>
+      </div>
+      <div class="qa-tower">
+        <form id="contactForm" action="https://formspree.io/f/xykqolkj" method="POST">
+          <div style="margin-bottom:16px;">
+            <label style="display:block; font-size:13px; color:var(--muted); margin-bottom:6px;">Name</label>
+            <input class="scan-input" type="text" name="name" required style="width:100%;">
+          </div>
+          <div style="margin-bottom:16px;">
+            <label style="display:block; font-size:13px; color:var(--muted); margin-bottom:6px;">Email</label>
+            <input class="scan-input" type="email" name="email" required style="width:100%;">
+          </div>
+          <div style="margin-bottom:16px;">
+            <label style="display:block; font-size:13px; color:var(--muted); margin-bottom:6px;">Message</label>
+            <textarea class="scan-input" name="message" rows="6" required style="width:100%; font-family:inherit; resize:vertical;" placeholder="Tell me briefly what you're looking for or what feedback you have."></textarea>
+          </div>
+          <button class="scan-btn" type="submit" id="submitBtn" style="width:100%;">Send message</button>
+          <div class="scan-status" id="formStatus"></div>
+        </form>
+      </div>
+    </div>
+  </div>
+</section>
+
+<footer>
+  <div class="wrap">
+    Built by <a href="https://arunkmishra.com" target="_blank">Arun Mishra</a>.
+    <br>Mail me at <a href="mailto:arun@arunkmishra.com">arun@arunkmishra.com</a>
+    <br><span style="color:var(--muted); font-size:12px;">&copy; 2026 Arun Mishra</span>
+  </div>
+</footer>
+
+<script src="shared.js"></script>
+<script>
+  document.getElementById('nav-placeholder').outerHTML = renderNavHtml('contact.html');
+
+  document.getElementById('contactForm').addEventListener('submit', async function (e) {
+    e.preventDefault();
+    const form = e.target;
+    const btn = document.getElementById('submitBtn');
+    const status = document.getElementById('formStatus');
+    btn.disabled = true;
+    status.textContent = 'Sending...';
+    try {
+      const res = await fetch(form.action, {
+        method: 'POST',
+        body: new FormData(form),
+        headers: { 'Accept': 'application/json' },
+      });
+      if (res.ok) {
+        status.textContent = "Sent — thanks, I'll get back to you.";
+        form.reset();
+      } else {
+        status.textContent = 'Something went wrong. Try again, or email directly.';
+      }
+    } catch (err) {
+      status.textContent = 'Something went wrong. Try again, or email directly.';
+    } finally {
+      btn.disabled = false;
+    }
+  });
+</script>
+<script defer src="/_vercel/insights/script.js"></script>
+</body>
+</html>

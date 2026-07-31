@@ -1,0 +1,9 @@
+{
+  "name": "greybox-demo",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Standalone static demo + live scanner for greybox. No Python anywhere in this repo, on purpose - see README.md.",
+  "dependencies": {
+    "jszip": "^3.10.1"
+  }
+}

@@ -40,14 +40,19 @@ specialize in execution. `greybox` is the assessment layer only.
 
 ## Your code never leaves your network
 
-This runs entirely on your own machine, CI, or cloud environment.
-There's no hosted service, no upload step, and no third party in the
-loop — the AI explanation step is the only part that calls an
-external API, and only if you set your own `ANTHROPIC_API_KEY`. Skip
-that and you still get the full dependency graph and confidence
-scoring with zero data leaving your infrastructure. Built with
-regulated industries (banking, healthcare) in mind, where sending
-code to any external SaaS is a non-starter.
+This describes the CLI specifically. It runs entirely on your own
+machine, CI, or cloud environment. There's no hosted service, no
+upload step, and no third party in the loop — the AI explanation step
+is the only part that calls an external API, and only if you set your
+own `ANTHROPIC_API_KEY`. Skip that and you still get the full
+dependency graph and confidence scoring with zero data leaving your
+infrastructure. Built with regulated industries (banking, healthcare)
+in mind, where sending code to any external SaaS is a non-starter.
+
+(The separate hosted web demo at `/demo` works differently on
+purpose — it reads a public repo you point it at, or a ZIP you upload,
+to run a live scan. That's a deliberate trade for a zero-setup demo,
+not a contradiction of this promise — just don't confuse the two.)
 
 ## Portfolio mode - scan multiple repos at once
 
@@ -60,10 +65,11 @@ greybox /path/to/org-repos --portfolio --output portfolio_report.md
 
 Every immediate subdirectory is scanned as its own repo. Real full
 scan of every file, no sampling — this is the difference between this
-and the web demo's org-scan feature, which samples a few files per
-repo to stay within GitHub API rate limits. Locally, there's no rate
-limit, so you get the real thing across your whole portfolio, ranked
-into Quick Wins / Bigger Efforts / Lower Priority.
+and the web demo's org/group-scan feature (GitHub orgs and GitLab
+groups), which samples a few files per repo to stay fast and within
+API rate limits. Locally, there's no rate limit, so you get the real
+thing across your whole portfolio, ranked into Quick Wins / Bigger
+Efforts / Lower Priority.
 
 ## Quickstart
 
@@ -113,14 +119,17 @@ codebase directory
 ## Status
 
 Supports Python, Java, and JavaScript with real parsers (ES5/ES6 -
-TypeScript and JSX are not yet reliably parsed). Also supports C# and
-COBOL, but those two use regex/heuristics, not a real AST parser - no
-mature pure-Python parser exists for either, so treat those results as
-a rougher first pass, stated honestly in the report itself, not hidden.
-Language auto-detected from folder contents.
+TypeScript and JSX are not yet reliably parsed). Also supports C#,
+COBOL, and Go, but those three use regex/heuristics, not a real AST
+parser - no mature pure-Python parser exists for any of them, so treat
+those results as a rougher first pass, stated honestly in the report
+itself, not hidden. Language auto-detected from folder contents.
 
-A static demo page (no backend, deployable to Vercel in ~2 minutes)
-showing a real run's output lives in `/demo` — see `demo/README.md`.
+A live, hosted demo (not just a static snapshot) lives in `/demo` —
+scans real public GitHub/GitLab/Bitbucket repos or an uploaded ZIP,
+with a lighter regex-based analyzer and a 100-file cap. See
+`demo/README.md` for what it can and can't do, and how that differs
+from this CLI.
 
 ## License
 

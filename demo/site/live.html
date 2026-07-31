@@ -1,0 +1,488 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Try it live — greybox</title>
+<link rel="icon" type="image/png" href="assets/favicon.png">
+<link rel="apple-touch-icon" href="assets/apple-touch-icon.png">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;600;700&family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="style.css">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/mermaid/10.9.0/mermaid.min.js"></script>
+</head>
+<body>
+
+<div id="nav-placeholder"></div>
+
+<div class="page-header">
+  <div class="wrap">
+    <div class="eyebrow">Live scan — real files, real analysis</div>
+    <h1>Scan a real public repo</h1>
+    <p class="sub">Paste a public GitHub, GitLab, or Bitbucket repo URL below, or triage a whole GitHub org / GitLab group. This fetches real files and analyzes them live — not the canned example.</p>
+  </div>
+</div>
+
+<section style="border-bottom:none;">
+  <div class="wrap">
+    <div class="scan-box">
+      <div class="cta-row" style="margin-bottom:14px;">
+        <select class="scan-input" id="scanModeSelect" style="flex:0 0 240px;" onchange="setScanMode(this.value)">
+          <option value="repo">Single GitHub repo</option>
+          <option value="gitlab">Single GitLab repo</option>
+          <option value="bitbucket">Single Bitbucket repo</option>
+          <option value="org">Full GitHub org</option>
+          <option value="gitlab-org">Full GitLab group</option>
+          <option value="zip">Upload ZIP (private / non-GitHub code)</option>
+        </select>
+        <a href="sample.html" class="filter-btn" style="text-decoration:none; margin-left:auto;">See a sample report first →</a>
+      </div>
+      <div class="scan-row">
+        <input class="scan-input" id="repoInput" type="text" placeholder="https://github.com/owner/repo" style="flex:1;" />
+        <input class="scan-input" id="zipInput" type="file" accept=".zip" style="flex:1; display:none; padding:9px 14px;" />
+        <select class="scan-input" id="langSelect" style="flex:0 0 170px;">
+          <option value="auto">Auto-detect language</option>
+          <option value="python">Python only</option>
+          <option value="java">Java only</option>
+          <option value="javascript">JavaScript only</option>
+          <option value="vue">Vue (.vue) only</option>
+          <option value="csharp">C# (.NET) only</option>
+          <option value="cobol">COBOL only</option>
+          <option value="go">Go only</option>
+        </select>
+        <button class="scan-btn" id="scanBtn" onclick="runScan()">Scan repo</button>
+      </div>
+      <p class="scan-note" id="freeTierNote" style="margin-top:10px;"></p>
+      <div class="scan-status" id="scanStatus"></div>
+      <div class="scan-error" id="scanError"></div>
+      <p class="scan-note">Scans up to <span id="maxFilesNote">100</span> files per repo (Python, Java, JavaScript, Vue, C#/.NET, COBOL, or Go) from a public GitHub, GitLab, or Bitbucket repo, using a fast, simplified regex-based analyzer (not the full AST parser the real CLI tool uses for Python/Java/JavaScript — see the <a href="https://github.com/ArunMishra1/greybox" style="color:var(--cyan);" target="_blank">GitHub repo</a> for the accurate version). AI explanations run on the top 3 riskiest files only, when an API key is configured. Bitbucket has no single "list all files" API, so that scan walks folders directly and may not reach every file in a very large or deeply nested repo — the scan result says so explicitly when that happens.</p>
+      <p class="scan-note"><b style="color:var(--text);">Private code, or hosted somewhere other than GitHub?</b> Zip your codebase (up to 4.5MB) and select "Upload ZIP" above — nothing needs to be public. For anything larger, or for code that must never leave your network at all, the open-source CLI runs entirely on your own machine. <a href="https://github.com/ArunMishra1/greybox" style="color:var(--cyan);" target="_blank">Run it locally →</a></p>
+    </div>
+
+    <div id="scanResults" style="margin-top:24px;"></div>
+  </div>
+</section>
+
+<footer>
+  <div class="wrap">
+    Built by <a href="https://arunkmishra.com" target="_blank">Arun Mishra</a>.
+    <br>Mail me at <a href="mailto:arun@arunkmishra.com">arun@arunkmishra.com</a>
+    <br><span style="color:var(--muted); font-size:12px;">&copy; 2026 Arun Mishra</span>
+  </div>
+</footer>
+
+<script src="sample-data.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
+<script src="shared.js"></script>
+<script>
+  mermaid.initialize({ startOnLoad: false, theme: 'dark' });
+  document.getElementById('nav-placeholder').outerHTML = renderNavHtml('live.html');
+
+  let scanMode = 'repo';
+  setScanMode('repo');
+
+  function setScanMode(mode) {
+    scanMode = mode;
+    document.getElementById('scanModeSelect').value = mode;
+    document.getElementById('repoInput').style.display = mode === 'zip' ? 'none' : 'block';
+    document.getElementById('zipInput').style.display = mode === 'zip' ? 'block' : 'none';
+    const placeholders = {
+      org: 'GitHub org name(s), comma-separated, e.g. uber, stripe',
+      'gitlab-org': 'GitLab group name(s), comma-separated, e.g. gitlab-org, another-group',
+      gitlab: 'https://gitlab.com/group/project',
+      bitbucket: 'https://bitbucket.org/workspace/repo',
+      repo: 'https://github.com/owner/repo',
+    };
+    document.getElementById('repoInput').placeholder = placeholders[mode] || placeholders.repo;
+    const btnLabels = { org: 'Scan org', 'gitlab-org': 'Scan GitLab group', zip: 'Scan ZIP', gitlab: 'Scan GitLab repo', bitbucket: 'Scan Bitbucket repo' };
+    document.getElementById('scanBtn').textContent = btnLabels[mode] || 'Scan repo';
+    const freeTierNotes = {
+      repo: 'Free scan: up to 100 files from one public repo. <a href="pricing.html" style="color:var(--cyan);">See Team plan for full-repo, multi-repo scanning →</a>',
+      gitlab: 'Free scan: up to 100 files from one public GitLab repo. <a href="pricing.html" style="color:var(--cyan);">See Team plan for full-repo, multi-repo scanning →</a>',
+      bitbucket: 'Free scan: up to 100 files from one public Bitbucket repo (folder walk is also capped — see note after scanning). <a href="pricing.html" style="color:var(--cyan);">See Team plan for full-repo scanning →</a>',
+      zip: 'Free scan: one ZIP file, up to 4.5MB, up to 100 files. <a href="pricing.html" style="color:var(--cyan);">See Team plan for larger codebases →</a>',
+      org: 'Free scan: light triage sampling a few files across up to 25 repos per org — a pointer to where to look, not a full-depth scan. <a href="pricing.html" style="color:var(--cyan);">Full-depth org scanning is a paid feature →</a>',
+      'gitlab-org': 'Free scan: light triage sampling a few files across up to 25 projects per GitLab group — a pointer to where to look, not a full-depth scan. <a href="pricing.html" style="color:var(--cyan);">Full-depth group scanning is a paid feature →</a>',
+    };
+    document.getElementById('freeTierNote').innerHTML = freeTierNotes[mode] || '';
+    document.getElementById('scanResults').innerHTML = '';
+    document.getElementById('scanError').textContent = '';
+    document.getElementById('scanStatus').textContent = '';
+  }
+
+  async function runScan() {
+    if (scanMode === 'org') return runOrgScan({ endpoint: '/api/scan-org', unitNoun: 'org', hostStrip: /^https?:\/\/github\.com\//, deepScanMode: 'repo' });
+    if (scanMode === 'gitlab-org') return runOrgScan({ endpoint: '/api/scan-gitlab-org', unitNoun: 'group', hostStrip: /^https?:\/\/gitlab\.com\//, deepScanMode: 'gitlab' });
+    if (scanMode === 'zip') return runZipScan();
+    if (scanMode === 'gitlab') return runUrlScan('/api/scan-gitlab');
+    if (scanMode === 'bitbucket') return runUrlScan('/api/scan-bitbucket');
+    return runUrlScan('/api/scan');
+  }
+
+  // Shared by GitHub org scan and GitLab group scan — same triage
+  // pattern, same response shape, same free/paid framing. `cfg` carries
+  // the only real differences: which endpoint, what to call the
+  // grouping unit ("org" vs "group"), and which single-repo mode
+  // "Deep-scan" should switch to.
+  async function runOrgScan(cfg) {
+    const input = document.getElementById('repoInput');
+    const btn = document.getElementById('scanBtn');
+    const status = document.getElementById('scanStatus');
+    const errorBox = document.getElementById('scanError');
+    const results = document.getElementById('scanResults');
+    const orgList = input.value.split(',').map(s => s.trim().replace(cfg.hostStrip, '').split('/')[0]).filter(Boolean);
+    if (!orgList.length) { errorBox.textContent = `Enter at least one ${cfg.unitNoun} name first, e.g. stripe`; return; }
+
+    btn.disabled = true;
+    errorBox.textContent = '';
+    results.innerHTML = '';
+    let elapsed = 0;
+    status.innerHTML = `<span class="spinner"></span> Scanning repos across ${orgList.length} ${cfg.unitNoun}(s) (sampling a few files each)...`;
+    const timer = setInterval(() => {
+      elapsed += 1;
+      status.innerHTML = `<span class="spinner"></span> Scanning repos across ${orgList.length} ${cfg.unitNoun}(s)... (${elapsed}s)`;
+    }, 1000);
+
+    try {
+      const res = await fetch(cfg.endpoint, {
+        method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ orgs: orgList }),
+      });
+      const data = await res.json();
+      clearInterval(timer);
+      if (!res.ok) { errorBox.textContent = data.error || 'Scan failed.'; status.textContent = ''; btn.disabled = false; return; }
+
+      status.textContent = `Triaged ${data.repos_scanned} of ${data.repos_total} repos across ${data.orgs.join(', ')}.`;
+
+      const quickWins = data.ranked_repos.filter(r => r.category === 'quick_win');
+      const bigEfforts = data.ranked_repos.filter(r => r.category === 'bigger_effort');
+      const steady = data.ranked_repos.filter(r => r.category === 'steady');
+
+      const repoLink = (r) => `<a href="javascript:void(0)" onclick="document.getElementById('repoInput').value='${escapeHtml(r.url)}'; setScanMode('${cfg.deepScanMode}'); document.getElementById('repoInput').scrollIntoView();" style="color:var(--cyan);">Deep-scan →</a>`;
+      const row = (r, i) => `<div class="step-row"><b>${i + 1}. ${escapeHtml(r.org)}/${escapeHtml(r.repo)}</b> (${r.language}, ~${r.total_files_matched} files, sampled confidence ~${r.avg_confidence}/100) — ${repoLink(r)}</div>`;
+
+      let html = `<div class="priority-banner">
+        <div class="label">Portfolio roadmap — ${data.orgs.length} ${cfg.unitNoun}(s), ${data.repos_scanned} repos with real code</div>
+        <div class="headline">Not a full report — a triage map so you know where to start. Deep-scan any repo below for the real dependency graph and findings.</div>
+      </div>`;
+
+      html += `<div class="graph-box" style="border-left:3px solid var(--good);"><h3 style="margin-top:0; color:var(--good);">🟢 Quick wins — start here (${quickWins.length})</h3><p class="section-note">Real risk, small enough to tackle fast.</p>${quickWins.map(row).join('') || '<div class="fact-row">None in this sample — often means these repos are already well-maintained (common for flagship public SDKs). Try scanning a less-polished internal or older repo to see this in action.</div>'}</div>`;
+      html += `<div class="graph-box" style="border-left:3px solid var(--amber);"><h3 style="margin-top:0; color:var(--amber);">🟠 Bigger efforts — plan, don't rush (${bigEfforts.length})</h3><p class="section-note">Real risk, large enough to need real planning and resourcing.</p>${bigEfforts.map(row).join('') || '<div class="fact-row">None in this sample.</div>'}</div>`;
+      html += `<div class="graph-box" style="border-left:3px solid var(--muted);"><h3 style="margin-top:0; color:var(--muted);">⚪ Lower priority for now (${steady.length})</h3><p class="section-note">Sampled confidence looks fine — not where to spend time first.</p>${steady.slice(0, 5).map(row).join('') || '<div class="fact-row">None found in this sample.</div>'}${steady.length > 5 ? `<div class="fact-row" style="margin-top:8px;">...and ${steady.length - 5} more.</div>` : ''}</div>`;
+
+      window.__lastOrgData = data;
+      html += `<div class="cta-row" style="margin-top:16px; flex-wrap:wrap;">
+        <button class="scan-btn" onclick="openExecutiveRoadmapPDF()">Get executive summary (PDF) →</button>
+        <button class="scan-btn" style="background:var(--surface-2); color:var(--text); border:1px solid var(--line);" onclick="downloadFullRoadmap()">Technical roadmap (Markdown)</button>
+        <button class="scan-btn" style="background:var(--surface-2); color:var(--text); border:1px solid var(--line);" onclick="downloadFullRoadmapDocx()">Roadmap (Word .docx)</button>
+      </div>`;
+
+      html += `<p class="scan-note">${data.note}</p>`;
+      const totalEffort = data.ranked_repos.reduce((sum, r) => sum + Math.log2(r.total_files_matched + 2), 0);
+      html += `<div class="graph-box" style="border:1px solid var(--cyan); margin-top:16px;">
+        <b style="color:var(--cyan);">Rough timeline &amp; cost estimate</b>
+        <p class="section-note" style="margin-top:6px; margin-bottom:12px;">This is simple math on your inputs, not an AI prediction. It scales a rough "effort points" number (based on file counts, not real complexity) by your team size and rate. Treat it as a napkin estimate to start a real conversation, not a quote.</p>
+        <div style="display:flex; gap:14px; flex-wrap:wrap; align-items:flex-end; margin-bottom:14px;">
+          <div><label style="display:block; font-size:12px; color:var(--muted); margin-bottom:4px;">Developers on this</label><input class="scan-input" type="number" id="teamSizeInput" value="2" min="1" style="width:90px;"></div>
+          <div><label style="display:block; font-size:12px; color:var(--muted); margin-bottom:4px;">Daily rate per dev ($)</label><input class="scan-input" type="number" id="dayRateInput" value="800" min="0" style="width:110px;"></div>
+          <button class="scan-btn" onclick="calcRoadmapCost(${totalEffort})">Calculate</button>
+        </div>
+        <div id="roadmapCostResult" style="font-size:14px; color:var(--text);"></div>
+      </div>`;
+      html += `<div class="graph-box" style="border-left:3px solid var(--cyan); margin-top:16px;">
+        <b style="color:var(--cyan);">What to do with this</b>
+        <p class="section-note" style="margin-top:8px; margin-bottom:0;">
+        This triage sampled only ${data.ranked_repos[0]?.sampled || 8} files per repo — it's a pointer to where to look, not a real report. Three ways to go deeper, in order:
+        </p>
+        <div class="fact-row" style="margin-top:10px;"><b>1. Deep-scan a repo</b> — click "Deep-scan →" above to run the single-repo scanner (up to 100 files, real dependency graph, real findings) on whichever repo looks most promising.</div>
+        <div class="fact-row"><b>2. Run the CLI locally for that repo</b> — no file cap at all, real AST parsing, the actual accurate version. <a href="https://github.com/ArunMishra1/greybox" style="color:var(--cyan);" target="_blank">Get it here →</a></div>
+        <div class="fact-row"><b>3. For a regulated/private org</b> — run the CLI against your whole internal ${cfg.unitNoun}'s repos directly, since it runs entirely on your own infrastructure. Nothing here requires a public repo except this demo.</div>
+      </div>`;
+
+      html += `<div class="graph-box" style="border:1px solid var(--amber); margin-top:16px; background:rgba(240,166,58,0.05);">
+        <div style="display:flex; align-items:center; gap:8px; margin-bottom:8px;"><span style="font-size:16px;">🔒</span><b style="color:var(--amber);">Full-depth ${cfg.unitNoun} scan — paid</b></div>
+        <p class="section-note" style="margin-top:0; margin-bottom:10px;">Everything above is a triage on a handful of sampled files. A full-depth scan runs the real analyzer on every file in every repo across your ${cfg.unitNoun} — no sampling, ranked with actual confidence scores, not estimates. That's a paid feature, run on your infrastructure or ours, not something this free demo does at scale.</p>
+        <a class="cta filled" href="contact.html">Ask about full-depth ${cfg.unitNoun} scanning →</a>
+      </div>`;
+      results.innerHTML = html;
+      calcRoadmapCost(totalEffort);
+    } catch (err) {
+      clearInterval(timer);
+      errorBox.textContent = 'Something went wrong: ' + err.message;
+      status.textContent = '';
+    } finally {
+      btn.disabled = false;
+    }
+  }
+
+  // Shared by GitHub, GitLab, and Bitbucket — all three take the same
+  // { repoUrl, forceLanguage } request shape and return the same
+  // response shape from runAnalysisPipeline, so only the endpoint differs.
+  async function runUrlScan(endpoint) {
+    const input = document.getElementById('repoInput');
+    const btn = document.getElementById('scanBtn');
+    const status = document.getElementById('scanStatus');
+    const errorBox = document.getElementById('scanError');
+    const results = document.getElementById('scanResults');
+
+    const repoUrl = input.value.trim();
+    if (!repoUrl) { errorBox.textContent = 'Paste a repo URL first, e.g. ' + input.placeholder; return; }
+
+    btn.disabled = true;
+    errorBox.textContent = '';
+    results.innerHTML = '';
+
+    const steps = [
+      'Fetching file list...',
+      'Downloading source files...',
+      'Running deterministic analysis (magic numbers, error handling, comments)...',
+      'Computing confidence scores...',
+      'Almost done...',
+    ];
+    const timer = startStatusTimer(status, steps);
+
+    try {
+      const res = await fetch(endpoint, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ repoUrl, forceLanguage: document.getElementById('langSelect').value }),
+      });
+      const data = await res.json();
+      clearInterval(timer);
+
+      if (!res.ok) {
+        errorBox.textContent = data.error || 'Scan failed.';
+        status.textContent = '';
+        return;
+      }
+
+      status.textContent = `Scanned ${data.files_scanned} of ${data.files_available} ${describeLanguages(data)} files in ${data.repo}.` +
+        (data.ai_enabled ? ' AI explanations enabled for the top 3 riskiest files.' : ' (AI explanations off — no ANTHROPIC_API_KEY set yet.)');
+
+      await renderScanResults(data, results);
+    } catch (err) {
+      clearInterval(timer);
+      errorBox.textContent = 'Something went wrong: ' + err.message;
+      status.textContent = '';
+    } finally {
+      btn.disabled = false;
+    }
+  }
+
+  // Shared with runZipScan — a spinner with rotating status text while
+  // a scan is in flight, regardless of where the files came from.
+  function startStatusTimer(status, steps) {
+    let stepIdx = 0, elapsed = 0;
+    status.innerHTML = `<span class="spinner"></span> ${steps[0]}`;
+    return setInterval(() => {
+      elapsed += 1;
+      if (elapsed % 3 === 0 && stepIdx < steps.length - 1) stepIdx += 1;
+      status.innerHTML = `<span class="spinner"></span> ${steps[stepIdx]} (${elapsed}s)`;
+    }, 1000);
+  }
+
+  // Renders a completed scan (repo, org-member, or ZIP upload — same
+  // response shape from all three) into the results panel: investment
+  // estimator, downloads, priority banner, findings chart, and the
+  // dependency graph.
+  async function renderScanResults(data, results) {
+    window.__lastScanData = data;
+
+    const repoEffort = data.modules.reduce((s, m) => s + Math.log2((m.functions.length || 1) + 2), 0);
+
+    let html = `<div class="priority-banner" style="border-color:var(--good);">
+      <div class="label">Investment estimate &amp; downloads — ${data.repo}</div>
+
+      <div class="graph-box" style="margin-top:4px;">
+        <div style="font-family:'IBM Plex Mono', monospace; font-size:12px; color:var(--muted); text-transform:uppercase; letter-spacing:0.05em; margin-bottom:12px;">Investment estimate — updates as you type</div>
+        <div style="display:flex; gap:14px; flex-wrap:wrap; align-items:flex-end; margin-bottom:14px;">
+          <div><label style="display:block; font-size:12px; color:var(--muted); margin-bottom:4px;">Developers on this</label><input class="scan-input" type="number" id="repoTeamSizeInput" value="2" min="1" style="width:90px;" oninput="calcRepoCost(${repoEffort})"></div>
+          <div><label style="display:block; font-size:12px; color:var(--muted); margin-bottom:4px;">Daily rate per dev ($)</label><input class="scan-input" type="number" id="repoDayRateInput" value="800" min="0" style="width:110px;" oninput="calcRepoCost(${repoEffort})"></div>
+        </div>
+        <div id="repoCostResult" style="font-size:14px; color:var(--text);"></div>
+        <div id="execPreview" style="margin-top:16px;"></div>
+      </div>
+
+      <div class="cta-row" style="margin-top:16px; flex-wrap:wrap;">
+        <button class="scan-btn" onclick="openExecutiveRoadmapPDF()">Get executive summary (PDF) →</button>
+        <button class="scan-btn" style="background:var(--surface-2); color:var(--text); border:1px solid var(--line);" onclick="downloadFullRoadmap()">Technical roadmap (Markdown)</button>
+      <button class="scan-btn" style="background:var(--surface-2); color:var(--text); border:1px solid var(--line);" onclick="downloadFullRoadmapDocx()">Roadmap (Word .docx)</button>
+      </div>
+      <div class="cta-row" style="margin-top:10px;">
+        <button class="scan-btn" onclick="downloadReport()">Download full report (Markdown)</button>
+        <button class="scan-btn" style="background:var(--surface-2); color:var(--text); border:1px solid var(--line);" onclick="downloadJson()">Download raw JSON</button>
+      </div>
+    </div>`;
+
+    html = renderExecutiveSummary(data) + html;
+    html += renderPriorityBanner(data);
+    html += renderFindingsChart(data);
+    html += renderModuleCardsSection(data.modules);
+    html += renderConfidenceExplainer();
+
+    html += `<div class="graph-box" style="margin-top:8px;">
+      <h2 style="margin-top:0;">Dependency Graph</h2>
+      <p class="section-note" id="graphNote" style="margin-bottom:12px;"></p>
+      <div class="graph-frame" id="liveGraph"></div>
+      <div class="graph-toolbar">
+        <button onclick="graphZoomOut(document.getElementById('liveGraph'))">−</button>
+        <button onclick="graphZoomIn(document.getElementById('liveGraph'))">+</button>
+        <button onclick="graphReset(document.getElementById('liveGraph'))">Reset</button>
+        <a href="javascript:void(0)" onclick="openGraphFullSize(document.getElementById('liveGraph'))">Open full-size ↗</a>
+      </div>
+    </div>`;
+
+    html += '<div style="margin:20px 0; display:flex; gap:10px; flex-wrap:wrap;"><button class="scan-btn" onclick="downloadReport()">Download full report (Markdown)</button><button class="scan-btn" style="background:var(--surface-2); color:var(--text); border:1px solid var(--line);" onclick="downloadJson()">Download raw JSON</button></div>';
+
+    if (data.files_scanned < data.files_available) {
+      html += `<div class="graph-box" style="border:1px solid var(--amber); margin-top:4px; background:rgba(240,166,58,0.05);">
+        <div style="display:flex; align-items:center; gap:8px; margin-bottom:8px;"><span style="font-size:16px;">🔒</span><b style="color:var(--amber);">This is a partial scan</b></div>
+        <p class="section-note" style="margin-top:0; margin-bottom:10px;">${data.files_available - data.files_scanned} file(s) in this repo weren't analyzed — this free demo caps at ${data.files_scanned} files per scan. Full-repo coverage (every file, no cap) is either the open-source CLI (free, runs on your machine) or the paid Team plan (hosted, no setup).</p>
+        <div class="cta-row" style="flex-wrap:wrap;">
+          <a class="cta filled" href="pricing.html">See Team plan →</a>
+          <a class="cta ghost" href="contact.html">Or just ask us →</a>
+        </div>
+      </div>`;
+    }
+
+    results.innerHTML = html;
+    calcRepoCost(repoEffort);
+
+    const riskyNames = data.modules.slice(0, 8).map(m => m.module);
+    const subset = computeGraphSubset(data.dependency_graph, riskyNames, 12);
+    const graphSrc = buildMermaidSource(subset.graph);
+    await renderZoomableGraph(document.getElementById('liveGraph'), graphSrc, `${data.repo} dependency graph`);
+    document.getElementById('graphNote').textContent = subset.kept < subset.total
+      ? `Showing the ${subset.kept} most-connected/riskiest of ${subset.total} files with dependencies — the rest are in the full downloadable report.`
+      : `All ${subset.total} files with dependencies shown.`;
+  }
+
+  const MAX_ZIP_MB = 4.5;
+
+  async function runZipScan() {
+    const fileInput = document.getElementById('zipInput');
+    const btn = document.getElementById('scanBtn');
+    const status = document.getElementById('scanStatus');
+    const errorBox = document.getElementById('scanError');
+    const results = document.getElementById('scanResults');
+
+    const file = fileInput.files[0];
+    if (!file) { errorBox.textContent = 'Choose a .zip file of your codebase first.'; return; }
+    if (!/\.zip$/i.test(file.name)) { errorBox.textContent = 'That doesn\'t look like a .zip file.'; return; }
+    if (file.size > MAX_ZIP_MB * 1024 * 1024) {
+      errorBox.textContent = `That file is ${(file.size / (1024*1024)).toFixed(1)}MB — this live demo caps ZIP uploads at ${MAX_ZIP_MB}MB. For larger codebases, use the CLI tool instead.`;
+      return;
+    }
+
+    btn.disabled = true;
+    errorBox.textContent = '';
+    results.innerHTML = '';
+
+    const steps = [
+      'Uploading ZIP...',
+      'Unpacking archive...',
+      'Running deterministic analysis (magic numbers, error handling, comments)...',
+      'Computing confidence scores...',
+      'Almost done...',
+    ];
+    const timer = startStatusTimer(status, steps);
+
+    try {
+      const res = await fetch('/api/scan-zip', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/zip',
+          'X-Force-Language': document.getElementById('langSelect').value,
+        },
+        body: file,
+      });
+      const data = await res.json();
+      clearInterval(timer);
+
+      if (!res.ok) {
+        errorBox.textContent = data.error || 'Scan failed.';
+        status.textContent = '';
+        return;
+      }
+
+      status.textContent = `Scanned ${data.files_scanned} of ${data.files_available} ${describeLanguages(data)} files from ${file.name}.` +
+        (data.ai_enabled ? ' AI explanations enabled for the top 3 riskiest files.' : ' (AI explanations off — no ANTHROPIC_API_KEY set yet.)');
+
+      await renderScanResults(data, results);
+    } catch (err) {
+      clearInterval(timer);
+      errorBox.textContent = 'Something went wrong: ' + err.message;
+      status.textContent = '';
+    } finally {
+      btn.disabled = false;
+    }
+  }
+
+
+
+  function downloadJson() {
+    if (!window.__lastScanData) return;
+    triggerDownload(new Blob([JSON.stringify(window.__lastScanData, null, 2)], { type: 'application/json' }),
+      `greybox-report-${window.__lastScanData.repo.replace('/', '-')}.json`);
+  }
+
+  function downloadReport() {
+    if (!window.__lastScanData) return;
+    const md = generateMarkdownReport(window.__lastScanData);
+    triggerDownload(new Blob([md], { type: 'text/markdown' }),
+      `greybox-report-${window.__lastScanData.repo.replace('/', '-')}.md`);
+  }
+
+  function calcRepoCost(totalEffortPoints) {
+    const teamSize = Math.max(1, parseInt(document.getElementById('repoTeamSizeInput').value) || 1);
+    const dayRate = Math.max(0, parseFloat(document.getElementById('repoDayRateInput').value) || 0);
+    const DAYS_PER_EFFORT_POINT = 1.5;
+    const totalDevDays = Math.round(totalEffortPoints * DAYS_PER_EFFORT_POINT) || 1;
+    const calendarDays = Math.ceil(totalDevDays / teamSize);
+    const calendarWeeks = Math.round(calendarDays / 5 * 10) / 10;
+    const totalCost = totalDevDays * dayRate;
+
+    document.getElementById('repoCostResult').innerHTML = `
+      <div class="fact-row"><b>~${totalDevDays} developer-days</b> for this repo, based on file/function counts (not real complexity)</div>
+      <div class="fact-row"><b>~${calendarWeeks} weeks</b> of calendar time with ${teamSize} developer(s)</div>
+      <div class="fact-row"><b>~$${totalCost.toLocaleString()}</b> at $${dayRate}/day per developer</div>
+      <div class="scan-note" style="margin-top:6px;">Simple math on your inputs, not an AI prediction — a napkin estimate to start a real planning conversation, not a quote. Adjust and recalculate.</div>
+    `;
+
+    const data = window.__lastScanData;
+    if (data) {
+      const avgConf = Math.round(data.modules.reduce((s, m) => s + m.confidence, 0) / data.modules.length);
+      const riskLevel = avgConf >= 70 ? 'Low' : avgConf >= 45 ? 'Moderate' : 'High';
+      const riskColor = avgConf >= 70 ? 'var(--good)' : avgConf >= 45 ? 'var(--amber)' : '#F3766B';
+      document.getElementById('execPreview').innerHTML = `
+        <div class="graph-box" style="border-left:3px solid ${riskColor};">
+          <div style="font-family:'IBM Plex Mono',monospace; font-size:11px; color:var(--muted); text-transform:uppercase; margin-bottom:8px;">Preview — what the executive summary will say</div>
+          <p style="font-size:13.5px; color:var(--text); margin:0;">"This assessment reviewed ${data.modules.length} modules and found an average system health score of ${avgConf}/100 (<b style="color:${riskColor};">${riskLevel} Risk</b>). Estimated investment to address flagged items: <b>~$${totalCost.toLocaleString()}</b>, roughly <b>${calendarWeeks} weeks</b> with ${teamSize} developer(s)."</p>
+        </div>`;
+    }
+  }
+
+  function calcRoadmapCost(totalEffortPoints) {
+    const teamSize = Math.max(1, parseInt(document.getElementById('teamSizeInput').value) || 1);
+    const dayRate = Math.max(0, parseFloat(document.getElementById('dayRateInput').value) || 0);
+
+    // Rough, disclosed formula: each "effort point" (log2 of file count per
+    // repo, summed) is treated as roughly 1.5 developer-days. This is a
+    // starting assumption to adjust, not a validated estimate - real
+    // effort depends on code complexity this triage doesn't measure.
+    const DAYS_PER_EFFORT_POINT = 1.5;
+    const totalDevDays = Math.round(totalEffortPoints * DAYS_PER_EFFORT_POINT);
+    const calendarDays = Math.ceil(totalDevDays / teamSize);
+    const calendarWeeks = Math.round(calendarDays / 5 * 10) / 10;
+    const totalCost = totalDevDays * dayRate;
+
+    document.getElementById('roadmapCostResult').innerHTML = `
+      <div class="fact-row"><b>~${totalDevDays} developer-days</b> of work across everything triaged</div>
+      <div class="fact-row"><b>~${calendarWeeks} weeks</b> of calendar time with ${teamSize} developer(s) working in parallel</div>
+      <div class="fact-row"><b>~$${totalCost.toLocaleString()}</b> at $${dayRate}/day per developer</div>
+      <div class="scan-note" style="margin-top:8px;">Change the inputs above and recalculate — this is meant to be adjusted, not trusted as-is.</div>
+    `;
+  }
+</script>
+<script defer src="/_vercel/insights/script.js"></script>
+</body>
+</html>

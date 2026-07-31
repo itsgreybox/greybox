@@ -1,0 +1,92 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Sample report — greybox</title>
+<link rel="icon" type="image/png" href="assets/favicon.png">
+<link rel="apple-touch-icon" href="assets/apple-touch-icon.png">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;600;700&family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="style.css">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/mermaid/10.9.0/mermaid.min.js"></script>
+</head>
+<body>
+
+<div id="nav-placeholder"></div>
+
+<div class="page-header">
+  <div class="wrap">
+    <div class="eyebrow">Sample report — fixed example, not live</div>
+    <h1>A 10-file illustrative example</h1>
+    <p class="sub">Not a real repo — a synthetic ride-hailing backend built to show what a real, messy legacy system's report looks like. Want a real scan instead? <a href="live.html" style="color:var(--cyan);">Try it live →</a></p>
+  </div>
+</div>
+
+<section class="tight">
+  <div class="wrap" id="priorityBannerHolder"></div>
+</section>
+
+<section class="tight">
+  <div class="wrap">
+    <h2>Dependency Graph</h2>
+    <p class="section-note">Drag to pan, scroll to zoom, or open full-size.</p>
+    <div class="graph-box">
+      <div class="graph-frame" id="reportGraph"></div>
+      <div class="graph-toolbar">
+        <button onclick="graphZoomOut(document.getElementById('reportGraph'))">−</button>
+        <button onclick="graphZoomIn(document.getElementById('reportGraph'))">+</button>
+        <button onclick="graphReset(document.getElementById('reportGraph'))">Reset</button>
+        <a href="javascript:void(0)" onclick="openGraphFullSize(document.getElementById('reportGraph'))">Open full-size ↗</a>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section>
+  <div class="wrap">
+    <div class="cta-row" style="margin-bottom:24px;">
+      <button class="scan-btn" onclick="openExecutiveRoadmapPDF()">Get executive summary (PDF) →</button>
+      <button class="scan-btn" style="background:var(--surface-2); color:var(--text); border:1px solid var(--line);" onclick="downloadFullRoadmap()">Technical roadmap (Markdown)</button>
+      <button class="scan-btn" style="background:var(--surface-2); color:var(--text); border:1px solid var(--line);" onclick="downloadFullRoadmapDocx()">Roadmap (Word .docx)</button>
+      <button class="scan-btn" onclick="downloadSampleReport()">Download full report (Markdown)</button>
+      <button class="scan-btn" style="background:var(--surface-2); color:var(--text); border:1px solid var(--line);" onclick="downloadSampleJson()">Download raw JSON</button>
+    </div>
+    <div id="moduleCardsHolder"></div>
+  </div>
+</section>
+
+<footer>
+  <div class="wrap">
+    Built by <a href="https://arunkmishra.com" target="_blank">Arun Mishra</a>.
+    <br>Mail me at <a href="mailto:arun@arunkmishra.com">arun@arunkmishra.com</a>
+    <br><span style="color:var(--muted); font-size:12px;">&copy; 2026 Arun Mishra</span>
+  </div>
+</footer>
+
+<script src="sample-data.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
+<script src="shared.js"></script>
+<script>
+  mermaid.initialize({ startOnLoad: false, theme: 'dark' });
+  document.getElementById('nav-placeholder').outerHTML = renderNavHtml('sample.html');
+  window.__lastScanData = SAMPLE_DATA;
+  document.getElementById('priorityBannerHolder').innerHTML = renderExecutiveSummary(SAMPLE_DATA) + renderPriorityBanner(SAMPLE_DATA) + renderFindingsChart(SAMPLE_DATA) + renderConfidenceExplainer();
+  document.getElementById('moduleCardsHolder').innerHTML = renderModuleCardsSection(SAMPLE_DATA.modules);
+
+  (async () => {
+    const src = buildMermaidSource(SAMPLE_DATA.dependency_graph);
+    await renderZoomableGraph(document.getElementById('reportGraph'), src, 'Sample dependency graph');
+  })();
+
+  function downloadSampleReport() {
+    const md = generateMarkdownReport(SAMPLE_DATA);
+    triggerDownload(new Blob([md], { type: 'text/markdown' }), 'greybox-sample-report.md');
+  }
+  function downloadSampleJson() {
+    triggerDownload(new Blob([JSON.stringify(SAMPLE_DATA, null, 2)], { type: 'application/json' }), 'greybox-sample-report.json');
+  }
+</script>
+<script defer src="/_vercel/insights/script.js"></script>
+</body>
+</html>
