@@ -1,5 +1,7 @@
 <p align="center"><img src="docs/assets/logo.png" alt="greybox" width="360"></p>
 
+<p align="center"><a href="https://greybox-demo.vercel.app/">Try the live demo →</a> — no signup, scans a real public GitHub/GitLab/Bitbucket repo or an uploaded ZIP</p>
+
 **Point it at an undocumented codebase. Get a plain-English assessment
 of what it does, a real dependency graph, and an honest confidence
 score per module — before you spend $150K+ on a modernization
@@ -138,7 +140,8 @@ parser - no mature pure-Python parser exists for any of them, so treat
 those results as a rougher first pass, stated honestly in the report
 itself, not hidden. Language auto-detected from folder contents.
 
-A live, hosted demo (not just a static snapshot) lives in `/demo` —
+A live, hosted demo (not just a static snapshot) lives in `/demo` and
+runs at [greybox-demo.vercel.app](https://greybox-demo.vercel.app/) —
 scans real public GitHub/GitLab/Bitbucket repos or an uploaded ZIP,
 with a lighter regex-based analyzer and a 100-file cap. See
 `demo/README.md` for what it can and can't do, and how that differs

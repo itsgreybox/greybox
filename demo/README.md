@@ -1,5 +1,7 @@
 # Demo deployment
 
+**Live at: [greybox-demo.vercel.app](https://greybox-demo.vercel.app/)**
+
 This is a real, hosted, live version of a subset of what the CLI does —
 not a static snapshot. It's a Vercel project: static pages in `site/`,
 serverless functions in `api/`.

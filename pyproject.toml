@@ -22,6 +22,7 @@ dev = ["pytest>=7.0"]
 Homepage = "https://github.com/itsgreybox/greybox"
 Repository = "https://github.com/itsgreybox/greybox"
 Issues = "https://github.com/itsgreybox/greybox/issues"
+Demo = "https://greybox-demo.vercel.app/"
 
 [project.scripts]
 greybox = "greybox.cli:main"
