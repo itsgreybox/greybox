@@ -37,7 +37,7 @@ module.exports = async function handler(req, res) {
   });
 
   if (tooLarge) {
-    return res.status(413).json({ error: `That ZIP is over the ${(MAX_ZIP_BYTES / (1024 * 1024)).toFixed(1)}MB limit for this live demo. For larger codebases, use the CLI tool instead — see github.com/ArunMishra1/greybox.` });
+    return res.status(413).json({ error: `That ZIP is over the ${(MAX_ZIP_BYTES / (1024 * 1024)).toFixed(1)}MB limit for this live demo. For larger codebases, use the CLI tool instead — see github.com/itsgreybox/greybox.` });
   }
   if (!chunks.length) {
     return res.status(400).json({ error: 'No file received. Choose a .zip file of your codebase.' });
@@ -74,7 +74,7 @@ module.exports = async function handler(req, res) {
       repo: 'uploaded ZIP',
       source_type: 'zip',
       ...result,
-      note: `Analyzed up to ${result.files_scanned} files from the uploaded ZIP using a simplified regex-based analyzer. For full-repo coverage with accurate AST parsing, use the CLI tool - see github.com/ArunMishra1/greybox.`,
+      note: `Analyzed up to ${result.files_scanned} files from the uploaded ZIP using a simplified regex-based analyzer. For full-repo coverage with accurate AST parsing, use the CLI tool - see github.com/itsgreybox/greybox.`,
     });
   } catch (err) {
     return res.status(err.statusCode || 500).json({ error: String(err.message || err) });

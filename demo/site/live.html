@@ -55,8 +55,8 @@
       <p class="scan-note" id="freeTierNote" style="margin-top:10px;"></p>
       <div class="scan-status" id="scanStatus"></div>
       <div class="scan-error" id="scanError"></div>
-      <p class="scan-note">Scans up to <span id="maxFilesNote">100</span> files per repo (Python, Java, JavaScript, Vue, C#/.NET, COBOL, or Go) from a public GitHub, GitLab, or Bitbucket repo, using a fast, simplified regex-based analyzer (not the full AST parser the real CLI tool uses for Python/Java/JavaScript — see the <a href="https://github.com/ArunMishra1/greybox" style="color:var(--cyan);" target="_blank">GitHub repo</a> for the accurate version). AI explanations run on the top 3 riskiest files only, when an API key is configured. Bitbucket has no single "list all files" API, so that scan walks folders directly and may not reach every file in a very large or deeply nested repo — the scan result says so explicitly when that happens.</p>
-      <p class="scan-note"><b style="color:var(--text);">Private code, or hosted somewhere other than GitHub?</b> Zip your codebase (up to 4.5MB) and select "Upload ZIP" above — nothing needs to be public. For anything larger, or for code that must never leave your network at all, the open-source CLI runs entirely on your own machine. <a href="https://github.com/ArunMishra1/greybox" style="color:var(--cyan);" target="_blank">Run it locally →</a></p>
+      <p class="scan-note">Scans up to <span id="maxFilesNote">100</span> files per repo (Python, Java, JavaScript, Vue, C#/.NET, COBOL, or Go) from a public GitHub, GitLab, or Bitbucket repo, using a fast, simplified regex-based analyzer (not the full AST parser the real CLI tool uses for Python/Java/JavaScript — see the <a href="https://github.com/itsgreybox/greybox" style="color:var(--cyan);" target="_blank">GitHub repo</a> for the accurate version). AI explanations run on the top 3 riskiest files only, when an API key is configured. Bitbucket has no single "list all files" API, so that scan walks folders directly and may not reach every file in a very large or deeply nested repo — the scan result says so explicitly when that happens.</p>
+      <p class="scan-note"><b style="color:var(--text);">Private code, or hosted somewhere other than GitHub?</b> Zip your codebase (up to 4.5MB) and select "Upload ZIP" above — nothing needs to be public. For anything larger, or for code that must never leave your network at all, the open-source CLI runs entirely on your own machine. <a href="https://github.com/itsgreybox/greybox" style="color:var(--cyan);" target="_blank">Run it locally →</a></p>
     </div>
 
     <div id="scanResults" style="margin-top:24px;"></div>
@@ -194,7 +194,7 @@
         This triage sampled only ${data.ranked_repos[0]?.sampled || 8} files per repo — it's a pointer to where to look, not a real report. Three ways to go deeper, in order:
         </p>
         <div class="fact-row" style="margin-top:10px;"><b>1. Deep-scan a repo</b> — click "Deep-scan →" above to run the single-repo scanner (up to 100 files, real dependency graph, real findings) on whichever repo looks most promising.</div>
-        <div class="fact-row"><b>2. Run the CLI locally for that repo</b> — no file cap at all, real AST parsing, the actual accurate version. <a href="https://github.com/ArunMishra1/greybox" style="color:var(--cyan);" target="_blank">Get it here →</a></div>
+        <div class="fact-row"><b>2. Run the CLI locally for that repo</b> — no file cap at all, real AST parsing, the actual accurate version. <a href="https://github.com/itsgreybox/greybox" style="color:var(--cyan);" target="_blank">Get it here →</a></div>
         <div class="fact-row"><b>3. For a regulated/private org</b> — run the CLI against your whole internal ${cfg.unitNoun}'s repos directly, since it runs entirely on your own infrastructure. Nothing here requires a public repo except this demo.</div>
       </div>`;
 

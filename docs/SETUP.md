@@ -9,7 +9,7 @@
 ## Install
 
 ```bash
-git clone https://github.com/ArunMishra1/greybox.git
+git clone https://github.com/itsgreybox/greybox.git
 cd greybox
 python3 -m venv .venv
 source .venv/bin/activate      # Windows: .venv\Scripts\activate

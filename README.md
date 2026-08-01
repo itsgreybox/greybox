@@ -12,6 +12,19 @@ consulting engagements. `greybox` is the fast, cheap, self-serve first
 look — not a replacement for a full migration, a way to walk into one
 informed.
 
+## Table of contents
+
+- [What it does today (real, working)](#what-it-does-today-real-working)
+- [What it doesn't do (on purpose)](#what-it-doesnt-do-on-purpose)
+- [Your code never leaves your network](#your-code-never-leaves-your-network)
+- [Portfolio mode - scan multiple repos at once](#portfolio-mode---scan-multiple-repos-at-once)
+- [Quickstart](#quickstart)
+- [Running tests](#running-tests)
+- [Architecture](#architecture)
+- [Status](#status)
+- [License](#license)
+- [Documentation](#documentation)
+
 ## What it does today (real, working)
 
 - Parses a Python codebase and builds a **real cross-file dependency
@@ -137,7 +150,14 @@ Apache 2.0 — see `LICENSE`.
 
 ## Documentation
 
-- [Setup](docs/SETUP.md) · [Architecture](docs/ARCHITECTURE.md) · [Troubleshooting](docs/TROUBLESHOOTING.md)
-- [Backlog](docs/BACKLOG.md) · [Feature checklist](docs/FEATURE_CHECKLIST.md) · [Launch checklist](docs/LAUNCH_CHECKLIST.md)
-- [Business model](docs/BUSINESS_MODEL.md) · [Differentiation vs other tools](docs/DIFFERENTIATION.md)
-- [Contributing](CONTRIBUTING.md) · [Security](SECURITY.md) · [Claude/AI context](docs/CLAUDE.md)
+- [Setup](docs/SETUP.md)
+- [Architecture](docs/ARCHITECTURE.md)
+- [Troubleshooting](docs/TROUBLESHOOTING.md)
+- [Backlog](docs/BACKLOG.md)
+- [Feature checklist](docs/FEATURE_CHECKLIST.md)
+- [Launch checklist](docs/LAUNCH_CHECKLIST.md)
+- [Business model](docs/BUSINESS_MODEL.md)
+- [Differentiation vs other tools](docs/DIFFERENTIATION.md)
+- [Contributing](CONTRIBUTING.md)
+- [Security](SECURITY.md)
+- [Claude/AI context](docs/CLAUDE.md)

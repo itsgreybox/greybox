@@ -1,10 +1,14 @@
 # Contributing
 
-This is currently a private, early-stage, single-maintainer project.
-It's not yet open for outside contributions while the core idea is
-still being validated (see `docs/BACKLOG.md` Phase 0) — but these are the
-ground rules for when that changes, and for any collaborators brought
-in before then.
+This repo is now public
+([github.com/itsgreybox/greybox](https://github.com/itsgreybox/greybox)),
+but it's still early-stage and pre-validation — see `docs/BACKLOG.md`,
+"Phase 0.5: get a real 'would you pay' signal," which explicitly says
+not to expand scope until that concludes. The code being public means
+you're welcome to read it, fork it, and run it — it doesn't yet mean
+this is actively seeking outside PRs. If you want to contribute
+something substantial, open an issue to discuss it first rather than
+sending a large PR cold.
 
 ## Before adding any feature
 
