@@ -81,8 +81,9 @@
 <section class="tight">
   <div class="wrap">
     <h2>"But you're just calling Claude API — anyone can do that"</h2>
-    <p class="section-note">True, and worth saying plainly: yes, anyone can call the Claude API. So does almost every AI product that exists. The real question is whether someone would actually build everything around that API call themselves.</p>
-    <div class="answer">"Yes, I'm calling Claude — so is every AI product you've ever used. The question isn't whether Claude is involved, it's whether you want to spend two weeks building the parser, the graph, the confidence math, and the concurrency handling yourselves, or use the version already built and proven on a real 84-file production codebase."</div>
+    <p class="section-note">True, and worth saying plainly: yes, anyone can call the Claude API. So does almost every AI product that exists. The real question isn't whether Claude is involved — it's what it's asked to do, and with what context.</p>
+    <p class="section-note">Raw Claude gets a code dump and has to guess what's worth flagging. greybox never sends bare code with no context: by the time the API call happens, the deterministic layer has already scored it — dependency graph built, undocumented constants flagged, silent failure points identified, a confidence score computed from real structural signals, all before any AI runs. Claude receives that structured brief alongside the (redacted) source, not instead of it — so it's told upfront exactly what to look at and why, instead of reading hundreds of lines and guessing what matters on its own.</p>
+    <div class="answer">"Yes, I'm calling Claude — so is every AI product you've ever used. The question is whether you want to spend two weeks building the parser, the dependency graph, the confidence math, and the structured-prompting layer yourselves, or use the version already built and proven on a real 84-file production codebase."</div>
     <button class="tech-toggle" style="margin-top:4px;" onclick="_toggleDetail(this, 'apiProofDetail')"><span>See the engineering breakdown</span><span class="chev">▾</span></button>
     <div class="module-detail" id="apiProofDetail">
       <div class="graph-box" style="text-align:center; padding: 32px;">
@@ -216,9 +217,7 @@
 
 <footer>
   <div class="wrap">
-    Built by <a href="https://arunkmishra.com" target="_blank">Arun Mishra</a>.
-    <br>Mail me at <a href="mailto:arun@arunkmishra.com">arun@arunkmishra.com</a>
-    <br><span style="color:var(--muted); font-size:12px;">&copy; 2026 Arun Mishra</span>
+    <span style="color:var(--muted); font-size:12px;">&copy; 2026 greybox</span>
   </div>
 </footer>
 

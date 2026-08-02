@@ -506,9 +506,8 @@ function renderPriorityBanner(data) {
   const top3 = [...riskPool].sort((a, b) => _estimateEffort(a) - _estimateEffort(b)).slice(0, 3);
   const order = top3.map(m => m.path.split('/').pop()).join(' → ');
   const repoLabel = data.repo || 'this codebase';
-  const mailSubject = encodeURIComponent(`Roadmap request for ${repoLabel}`);
-  const mailBody = encodeURIComponent(
-    `Hi Arun,\n\nI ran greybox on ${repoLabel} and would like help sequencing this into a full roadmap - quick wins first, then bigger effort items.\n\n(Attach or paste your downloaded report here.)`
+  const talkToUsMsg = encodeURIComponent(
+    `I ran greybox on ${repoLabel} and would like help sequencing this into a full roadmap - quick wins first, then bigger effort items.`
   );
 
   let html = `<div class="priority-banner">
@@ -523,7 +522,7 @@ function renderPriorityBanner(data) {
       <div style="display:flex; gap:10px; flex-wrap:wrap;">
         <button class="cta filled" style="cursor:pointer; border:none; font-family:inherit;" onclick="openExecutiveRoadmapPDF()">Get executive summary (PDF) →</button>
         <button class="cta" style="cursor:pointer; border:1px solid var(--line); background:none; font-family:inherit; color:var(--muted);" onclick="downloadFullRoadmap()">Technical version (Markdown)</button>
-        <a class="cta" href="mailto:arun@arunkmishra.com?subject=${mailSubject}&body=${mailBody}">Want it customized? Talk to me →</a>
+        <a class="cta" href="contact.html?prefill=${talkToUsMsg}">Want it customized? Talk to us →</a>
       </div>
     </div>
   </div>`;

@@ -106,9 +106,21 @@ being 84 unmanageable browser tabs.
 True, and worth saying plainly: yes, anyone can call the Claude API.
 That's true of almost every AI product that exists. Stripe is "just
 calling a bank." Datadog is "just calling cloud provider APIs." The
-real question was never whether Claude makes this possible — it's
-whether someone would actually go build everything *around* that API
-call themselves, for a problem they hit occasionally.
+real question isn't whether Claude is involved — it's what it's asked
+to do, and with what context.
+
+Raw Claude gets a code dump and has to guess what's worth flagging.
+greybox never sends bare code with no context: by the time the API
+call happens, the deterministic layer has already scored it —
+dependency graph built, undocumented constants flagged, silent
+failure points identified, a confidence score computed from real
+structural signals, all before any AI runs. Claude receives that
+structured brief alongside the redacted source, not instead of it —
+see `_build_prompt()` in `explainer.py`, which puts the facts
+(functions, magic numbers, branch count, bare-except, TODOs) ahead of
+the source snippet in every prompt. It's told upfront exactly what to
+look at and why, instead of reading hundreds of lines and guessing
+what matters on its own.
 
 **The actual numbers, from this codebase:**
 
@@ -137,11 +149,11 @@ line becomes useful:
   to verify it
 
 **The line to say out loud in a room:** "Yes, I'm calling Claude — so
-is every AI product you've ever used. The question isn't whether
-Claude is involved, it's whether you want to spend two weeks building
-the parser, the graph, the confidence math, and the concurrency
-handling yourselves, or use the version where that's already built,
-tested, and proven on a real 84-file production codebase."
+is every AI product you've ever used. The question is whether you
+want to spend two weeks building the parser, the dependency graph,
+the confidence math, and the structured-prompting layer yourselves,
+or use the version where that's already built, tested, and proven on
+a real 84-file production codebase."
 
 **The honest follow-up, if someone pushes further:** "What if I just
 have an engineer build this exact thing for us?" Fair challenge — they

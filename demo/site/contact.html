@@ -24,14 +24,7 @@
 
 <section style="border-bottom:none;">
   <div class="wrap">
-    <div class="two-col">
-      <div class="qa-tower" style="background:#06131A; border-color:var(--cyan);">
-        <h2 style="font-size:20px; margin-top:0;">Prefer email?</h2>
-        <p class="section-note">I read every message personally. Most replies go out within 1-2 business days.</p>
-        <p class="section-note">Want to share more detail, a repo, or a screenshot? Just attach it to an email directly — no upload needed here.</p>
-        <div style="border-top:1px solid var(--line); margin:16px 0;"></div>
-        <a href="mailto:arun@arunkmishra.com" style="color:var(--cyan); font-weight:600; font-size:15px; text-decoration:none;">✉ arun@arunkmishra.com</a>
-      </div>
+    <div class="two-col" style="grid-template-columns: 1fr;">
       <div class="qa-tower">
         <form id="contactForm" action="https://formspree.io/f/xykqolkj" method="POST">
           <div style="margin-bottom:16px;">
@@ -56,15 +49,20 @@
 
 <footer>
   <div class="wrap">
-    Built by <a href="https://arunkmishra.com" target="_blank">Arun Mishra</a>.
-    <br>Mail me at <a href="mailto:arun@arunkmishra.com">arun@arunkmishra.com</a>
-    <br><span style="color:var(--muted); font-size:12px;">&copy; 2026 Arun Mishra</span>
+    <span style="color:var(--muted); font-size:12px;">&copy; 2026 greybox</span>
   </div>
 </footer>
 
 <script src="shared.js"></script>
 <script>
   document.getElementById('nav-placeholder').outerHTML = renderNavHtml('contact.html');
+
+  // Carries context from other pages (e.g. "customize my roadmap for X repo")
+  // into the message field, replacing what used to be a prefilled mailto.
+  const prefill = new URLSearchParams(window.location.search).get('prefill');
+  if (prefill) {
+    document.querySelector('textarea[name="message"]').value = prefill;
+  }
 
   document.getElementById('contactForm').addEventListener('submit', async function (e) {
     e.preventDefault();
