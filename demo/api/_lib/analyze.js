@@ -53,12 +53,27 @@ function extractMagicNumbers(src) {
 function extractImports(src, language) {
   const imports = [];
   if (language === 'python') {
-    for (const m of src.matchAll(/^from\s+([\w.]+)\s+import/gm)) imports.push(m[1].split('.').pop());
+    for (const m of src.matchAll(/^from\s+([\w.]+)\s+import\s+(.+)$/gm)) {
+      imports.push(m[1].split('.').pop());
+      m[2].replace(/[()\\]/g, '').split(',').forEach(part => {
+        const nm = part.trim().split(/\s+as\s+/)[0].trim();
+        if (nm && nm !== '*') imports.push(nm);
+      });
+    }
     for (const m of src.matchAll(/^import\s+([\w.]+)/gm)) imports.push(m[1].split('.').pop());
   } else if (language === 'java') {
     for (const m of src.matchAll(/^import\s+([\w.]+);/gm)) imports.push(m[1].split('.').pop());
   } else if (language === 'javascript' || language === 'vue') {
-    for (const m of src.matchAll(/^import\s+.*?from\s+['"]([^'"]+)['"]/gm)) imports.push(m[1].split('/').pop());
+    for (const m of src.matchAll(/^import\s+(.*?)\s+from\s+['"]([^'"]+)['"]/gm)) {
+      imports.push(m[2].split('/').pop());
+      const namedMatch = m[1].match(/\{([^}]+)\}/);
+      if (namedMatch) {
+        namedMatch[1].split(',').forEach(part => {
+          const nm = part.trim().split(/\s+as\s+/)[0].trim();
+          if (nm) imports.push(nm);
+        });
+      }
+    }
     for (const m of src.matchAll(/require\(['"]([^'"]+)['"]\)/g)) imports.push(m[1].split('/').pop());
   } else if (language === 'csharp') {
     for (const m of src.matchAll(/^\s*using\s+([\w.]+)\s*;/gm)) imports.push(m[1].split('.').pop());
@@ -264,12 +279,77 @@ async function runAnalysisPipeline(fileEntries, { forceLanguage, apiKey } = {}) 
     files_available: allMatchedFiles.length,
     ai_enabled: Boolean(apiKey),
     dependency_graph: dependencyGraph,
+    architecture_by_folder: buildFolderArchitectureGraph(modules, dependencyGraph),
+    entry_point_flow: buildEntryPointFlow(modules, dependencyGraph),
     modules,
   };
+}
+
+// Higher-level view than the file-by-file dependency graph: groups
+// files by folder and shows how those groups connect. Same logic as
+// build_folder_architecture_graph() in the CLI's analyzer.py - kept
+// in sync deliberately, not reimplemented differently.
+function buildFolderArchitectureGraph(modules, dependencyGraph) {
+  const folderOf = {};
+  modules.forEach(m => {
+    const parts = m.path.split('/');
+    folderOf[m.module] = parts.length > 1 ? parts.slice(0, -1).join('/') : '(root)';
+  });
+
+  const folderGraph = {};
+  Object.entries(dependencyGraph).forEach(([mod, deps]) => {
+    const srcFolder = folderOf[mod];
+    if (!srcFolder) return;
+    if (!folderGraph[srcFolder]) folderGraph[srcFolder] = new Set();
+    deps.forEach(dep => {
+      const dstFolder = folderOf[dep];
+      if (dstFolder && dstFolder !== srcFolder) folderGraph[srcFolder].add(dstFolder);
+    });
+  });
+
+  const result = {};
+  Object.entries(folderGraph).forEach(([folder, deps]) => { result[folder] = [...deps].sort(); });
+  return result;
+}
+
+// Reachability from likely entry points, based on the import graph.
+// HONESTY NOTE, same as the CLI: this is NOT a traced runtime call
+// sequence. It's "these files are the ones nothing else in this scan
+// imports" plus "here's what becomes reachable from there" - a real,
+// honestly-scoped signal, not a data-flow diagram. See
+// build_entry_point_flow() in analyzer.py for the same logic in Python.
+function buildEntryPointFlow(modules, dependencyGraph) {
+  const allNames = new Set(modules.map(m => m.module));
+  const imported = new Set();
+  Object.values(dependencyGraph).forEach(deps => deps.forEach(d => imported.add(d)));
+
+  const entryPoints = [...allNames].filter(n => !imported.has(n)).sort();
+
+  const reachableFrom = {};
+  entryPoints.forEach(entry => {
+    const seen = new Set();
+    const stack = [entry];
+    while (stack.length) {
+      const cur = stack.pop();
+      if (seen.has(cur)) continue;
+      seen.add(cur);
+      (dependencyGraph[cur] || []).forEach(dep => {
+        if (allNames.has(dep) && !seen.has(dep)) stack.push(dep);
+      });
+    }
+    seen.delete(entry);
+    reachableFrom[entry] = [...seen].sort();
+  });
+
+  const allReachable = new Set();
+  Object.values(reachableFrom).forEach(reached => reached.forEach(n => allReachable.add(n)));
+  const unreached = [...allNames].filter(n => !entryPoints.includes(n) && !allReachable.has(n)).sort();
+
+  return { entry_points: entryPoints, reachable_from: reachableFrom, unreached };
 }
 
 module.exports = {
   MAX_FILES, SKIP_DIRS, EXT_PATTERN, LANG_TO_EXT_TEST, EXT_TO_LANG,
   analyzeSource, confidenceScore, suggestNextSteps, redactSecrets,
-  explainWithClaude, runAnalysisPipeline,
+  explainWithClaude, runAnalysisPipeline, buildFolderArchitectureGraph, buildEntryPointFlow,
 };

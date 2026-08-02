@@ -46,8 +46,21 @@ def analyze_file(path):
             facts.todo_comments.append((i, line.strip()))
 
     for node in ast.walk(tree):
-        if isinstance(node, ast.ImportFrom) and node.module:
-            facts.imports_from.append(node.module)
+        if isinstance(node, ast.ImportFrom):
+            if node.module:
+                facts.imports_from.append(node.module)
+            # Also capture the actual imported names, not just the package
+            # path - "from api import handler" needs to match a file
+            # named handler.py, and node.module alone ("api") never will.
+            for alias in node.names:
+                if alias.name != '*':
+                    facts.imports_from.append(alias.name)
+        if isinstance(node, ast.Import):
+            for alias in node.names:
+                # "import pkg.sub.mod" - keep both the full dotted path
+                # and the last segment, since either might match a file.
+                facts.imports_from.append(alias.name)
+                facts.imports_from.append(alias.name.split('.')[-1])
         if isinstance(node, ast.FunctionDef):
             facts.functions.append(node.name)
             branches = sum(
@@ -66,16 +79,105 @@ def analyze_file(path):
 
 def build_dependency_graph(directory):
     """Real cross-file dependency graph - the thing a single pasted-in
-    file can never give you, because the AI never sees the other files."""
+    file can never give you, because the AI never sees the other files.
+
+    BUG FIX (see CHANGELOG / commit history): this used to call
+    os.listdir(directory), which only sees files directly in that one
+    folder and silently misses everything in subdirectories. Nearly
+    every real Python project uses subdirectories (src/, a package with
+    submodules, etc.), so this was silently under-scanning almost every
+    real codebase down to just its top-level loose files. Every other
+    language analyzer in this repo (Java/JS/C#/COBOL/Go) already used
+    os.walk correctly - this brings Python in line with that, since
+    Python is supposed to be the flagship, most-accurate language here."""
     graph = {}
     all_facts = {}
-    for fname in sorted(os.listdir(directory)):
-        if fname.endswith('.py'):
-            path = os.path.join(directory, fname)
-            facts = analyze_file(path)
-            all_facts[facts.name] = facts
-            graph[facts.name] = facts.imports_from
+    for root, _, files in os.walk(directory):
+        for fname in sorted(files):
+            if fname.endswith('.py'):
+                path = os.path.join(root, fname)
+                facts = analyze_file(path)
+                all_facts[facts.name] = facts
+                graph[facts.name] = facts.imports_from
     return graph, all_facts
+
+
+def build_folder_architecture_graph(graph, all_facts, directory):
+    """Higher-level view than the file-by-file dependency graph: groups
+    files by their folder (relative to the scanned root) and shows how
+    those folders connect, not individual files. Built purely from data
+    the file-level graph already has - no new parsing required.
+
+    A file directly in the scanned root folder is grouped under
+    "(root)" rather than an empty string, so it reads clearly in the
+    output instead of looking like a blank/broken label."""
+    folder_of = {}
+    for name, facts in all_facts.items():
+        rel_dir = os.path.relpath(os.path.dirname(facts.path), directory)
+        folder_of[name] = "(root)" if rel_dir == "." else rel_dir.replace(os.sep, "/")
+
+    folder_graph = {}
+    for mod, deps in graph.items():
+        src_folder = folder_of.get(mod)
+        if src_folder is None:
+            continue
+        folder_graph.setdefault(src_folder, set())
+        for dep in deps:
+            dst_folder = folder_of.get(dep)
+            if dst_folder and dst_folder != src_folder:
+                folder_graph[src_folder].add(dst_folder)
+
+    return {folder: sorted(deps) for folder, deps in folder_graph.items()}
+
+
+def build_entry_point_flow(graph, all_facts):
+    """Reachability from likely entry points, based on the static import
+    graph.
+
+    HONESTY NOTE, stated plainly because this is easy to overclaim:
+    this is NOT a traced runtime call sequence. It cannot know what
+    actually executes first, in what order, or under what conditions -
+    that requires either running the code or a much deeper
+    interprocedural call-graph analysis, neither of which this tool
+    does. What it CAN honestly say: "these files are the ones nothing
+    else in this scan imports" (a reasonable proxy for an entry point -
+    a script or main module usually isn't imported by anything else in
+    the same codebase), and "here is what becomes reachable if you
+    start reading from there, based on imports." That's a real, useful,
+    honestly-scoped signal - not a data-flow diagram.
+    """
+    imported = set()
+    for deps in graph.values():
+        imported.update(deps)
+
+    entry_points = sorted(name for name in all_facts if name not in imported)
+
+    reachable_from = {}
+    for entry in entry_points:
+        seen = set()
+        stack = [entry]
+        while stack:
+            cur = stack.pop()
+            if cur in seen:
+                continue
+            seen.add(cur)
+            for dep in graph.get(cur, []):
+                if dep in all_facts and dep not in seen:
+                    stack.append(dep)
+        seen.discard(entry)
+        reachable_from[entry] = sorted(seen)
+
+    all_reachable = {n for reached in reachable_from.values() for n in reached}
+    unreached = sorted(
+        name for name in all_facts
+        if name not in entry_points and name not in all_reachable
+    )
+
+    return {
+        "entry_points": entry_points,
+        "reachable_from": reachable_from,
+        "unreached": unreached,  # not an entry point AND nothing traces to it - worth a human look
+    }
 
 
 def confidence_score(facts):

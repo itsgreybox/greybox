@@ -3,7 +3,8 @@ import json
 from concurrent.futures import ThreadPoolExecutor, as_completed
 from .analyzer import (
     build_dependency_graph, confidence_score, suggest_next_steps,
-    estimate_effort, categorize_finding,
+    estimate_effort, categorize_finding, build_folder_architecture_graph,
+    build_entry_point_flow,
 )
 from .explainer import explain_module
 
@@ -81,6 +82,47 @@ def generate_report(directory, output_path=None, language=None, workers=8):
             if d in all_facts:
                 lines.append(f"    {mod} --> {d}")
     lines.append("```\n")
+
+    lines.append("## Architecture Diagram (by folder)\n")
+    lines.append("_A higher-level view than the file-by-file graph above: files "
+                  "grouped by folder, showing how those groups connect. Built from "
+                  "the same import data, just aggregated - not a new analysis pass._\n")
+    folder_graph = build_folder_architecture_graph(graph, all_facts, directory)
+    if any(deps for deps in folder_graph.values()):
+        import re as _re
+        def _safe_id(label):
+            safe = _re.sub(r'[^a-zA-Z0-9_]', '_', label)
+            return safe if safe and safe[0].isalpha() else f"f_{safe}"
+        lines.append("```mermaid\ngraph LR")
+        for folder, deps in folder_graph.items():
+            for d in deps:
+                lines.append(f'    {_safe_id(folder)}["{folder}"] --> {_safe_id(d)}["{d}"]')
+        lines.append("```\n")
+    else:
+        lines.append("_Everything scanned lives in one folder, or nothing links "
+                      "across folders - nothing to diagram here._\n")
+
+    lines.append("## Entry-Point Flow\n")
+    lines.append("_Reachability from files nothing else in this scan imports (a "
+                  "reasonable proxy for an entry point), traced through the import "
+                  "graph. This is **not a traced runtime call sequence** - it can't "
+                  "know what actually executes first or in what order. It's an "
+                  "honestly-scoped signal: \"if you start reading here, this is what "
+                  "becomes reachable,\" nothing more._\n")
+    flow = build_entry_point_flow(graph, all_facts)
+    if flow["entry_points"]:
+        for entry in flow["entry_points"]:
+            reached = flow["reachable_from"][entry]
+            if reached:
+                lines.append(f"- **{entry}** reaches: {', '.join(reached)}")
+            else:
+                lines.append(f"- **{entry}** reaches nothing else in this scan "
+                              f"(standalone script, or dead code worth a second look)")
+        lines.append("")
+    if flow["unreached"]:
+        lines.append(f"**Not an entry point, and nothing reaches it either:** "
+                      f"{', '.join(flow['unreached'])} - worth checking if this is "
+                      f"actually used anywhere, or safe to remove.\n")
 
     lines.append("## Module-by-Module Findings\n")
     total = len(all_facts)
@@ -212,6 +254,8 @@ def generate_json(directory, output_path=None, language=None):
         "directory": directory,
         "language": language,
         "dependency_graph": graph,
+        "architecture_by_folder": build_folder_architecture_graph(graph, all_facts, directory),
+        "entry_point_flow": build_entry_point_flow(graph, all_facts),
         "modules": sorted(modules, key=lambda m: m["confidence"]),
     }
 

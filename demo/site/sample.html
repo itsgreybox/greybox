@@ -43,6 +43,26 @@
   </div>
 </section>
 
+<section class="tight">
+  <div class="wrap">
+    <h2>Architecture Diagram (by folder)</h2>
+    <p class="section-note">A higher-level view than the file-by-file graph above: files grouped by folder, showing how those groups connect. Built from the same import data, just aggregated — not a new analysis pass.</p>
+    <div class="graph-box" id="archGraphBox">
+      <div class="graph-frame" id="archGraph"></div>
+      <div class="graph-toolbar">
+        <button onclick="graphZoomOut(document.getElementById('archGraph'))">−</button>
+        <button onclick="graphZoomIn(document.getElementById('archGraph'))">+</button>
+        <button onclick="graphReset(document.getElementById('archGraph'))">Reset</button>
+        <a href="javascript:void(0)" onclick="openGraphFullSize(document.getElementById('archGraph'))">Open full-size ↗</a>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section class="tight">
+  <div class="wrap" id="entryFlowHolder"></div>
+</section>
+
 <section>
   <div class="wrap">
     <div class="cta-row" style="margin-bottom:24px;">
@@ -69,12 +89,24 @@
   mermaid.initialize({ startOnLoad: false, theme: 'dark' });
   document.getElementById('nav-placeholder').outerHTML = renderNavHtml('sample.html');
   window.__lastScanData = SAMPLE_DATA;
+  SAMPLE_DATA.architecture_by_folder = buildFolderArchitectureGraph(SAMPLE_DATA.modules, SAMPLE_DATA.dependency_graph);
+  SAMPLE_DATA.entry_point_flow = buildEntryPointFlow(SAMPLE_DATA.modules, SAMPLE_DATA.dependency_graph);
   document.getElementById('priorityBannerHolder').innerHTML = renderExecutiveSummary(SAMPLE_DATA) + renderPriorityBanner(SAMPLE_DATA) + renderFindingsChart(SAMPLE_DATA) + renderConfidenceExplainer();
   document.getElementById('moduleCardsHolder').innerHTML = renderModuleCardsSection(SAMPLE_DATA.modules);
+  document.getElementById('entryFlowHolder').innerHTML = renderEntryPointFlow(SAMPLE_DATA);
+
+  const hasFolderStructure = Object.values(SAMPLE_DATA.architecture_by_folder).some(deps => deps.length);
+  if (!hasFolderStructure) {
+    document.getElementById('archGraphBox').innerHTML = '<p class="section-note">Everything in this sample lives in one folder, or nothing links across folders — nothing to diagram here.</p>';
+  }
 
   (async () => {
     const src = buildMermaidSource(SAMPLE_DATA.dependency_graph);
     await renderZoomableGraph(document.getElementById('reportGraph'), src, 'Sample dependency graph');
+    if (hasFolderStructure) {
+      const archSrc = buildMermaidSource(SAMPLE_DATA.architecture_by_folder);
+      await renderZoomableGraph(document.getElementById('archGraph'), archSrc, 'Sample architecture by folder');
+    }
   })();
 
   function downloadSampleReport() {

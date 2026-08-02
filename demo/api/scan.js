@@ -115,7 +115,7 @@ module.exports = async function handler(req, res) {
     return res.status(200).json({
       repo: `${parsed.owner}/${parsed.repo}`,
       ...result,
-      note: `This live demo analyzes up to ${MAX_FILES} files per scan (kept modest to stay fast on a public page) using a simplified regex-based analyzer. For full-repo coverage with accurate AST parsing, use the CLI tool - see github.com/itsgreybox/greybox.`,
+      note: `This live demo analyzes up to ${MAX_FILES} files per scan (kept modest to stay fast on a public page) using a simplified regex-based analyzer. For full-repo coverage with accurate AST parsing, use the CLI tool - see github.com/ArunMishra1/greybox.`,
     });
   } catch (err) {
     return res.status(err.statusCode || 500).json({ error: String(err.message || err) });

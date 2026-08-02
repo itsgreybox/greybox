@@ -329,6 +329,22 @@
       </div>
     </div>`;
 
+    const hasFolderStructure = Object.values(data.architecture_by_folder || {}).some(deps => deps.length);
+    html += `<div class="graph-box" style="margin-top:8px;">
+      <h2 style="margin-top:0;">Architecture Diagram (by folder)</h2>
+      <p class="section-note" style="margin-bottom:12px;">A higher-level view than the file-by-file graph above: files grouped by folder, showing how those groups connect. Built from the same import data, just aggregated — not a new analysis pass.</p>
+      ${hasFolderStructure ? `
+      <div class="graph-frame" id="archGraph"></div>
+      <div class="graph-toolbar">
+        <button onclick="graphZoomOut(document.getElementById('archGraph'))">−</button>
+        <button onclick="graphZoomIn(document.getElementById('archGraph'))">+</button>
+        <button onclick="graphReset(document.getElementById('archGraph'))">Reset</button>
+        <a href="javascript:void(0)" onclick="openGraphFullSize(document.getElementById('archGraph'))">Open full-size ↗</a>
+      </div>` : `<p class="section-note">Everything scanned lives in one folder, or nothing links across folders — nothing to diagram here.</p>`}
+    </div>`;
+
+    html += renderEntryPointFlow(data);
+
     html += '<div style="margin:20px 0; display:flex; gap:10px; flex-wrap:wrap;"><button class="scan-btn" onclick="downloadReport()">Download full report (Markdown)</button><button class="scan-btn" style="background:var(--surface-2); color:var(--text); border:1px solid var(--line);" onclick="downloadJson()">Download raw JSON</button></div>';
 
     if (data.files_scanned < data.files_available) {
@@ -352,6 +368,11 @@
     document.getElementById('graphNote').textContent = subset.kept < subset.total
       ? `Showing the ${subset.kept} most-connected/riskiest of ${subset.total} files with dependencies — the rest are in the full downloadable report.`
       : `All ${subset.total} files with dependencies shown.`;
+
+    if (hasFolderStructure) {
+      const archSrc = buildMermaidSource(data.architecture_by_folder);
+      await renderZoomableGraph(document.getElementById('archGraph'), archSrc, `${data.repo} architecture by folder`);
+    }
   }
 
   const MAX_ZIP_MB = 4.5;
