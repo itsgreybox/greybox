@@ -11,9 +11,20 @@ function sanitizeId(name) {
   return String(name).replace(/[^a-zA-Z0-9_]/g, '_');
 }
 
-function buildMermaidSource(dependencyGraph) {
+// confidenceMap (optional): { moduleName: confidence } - colors nodes
+// red/amber/green by REAL confidence scores already computed elsewhere.
+// allGreen (optional): forces every node green - used only for the
+// explicitly-labeled "illustrative target state" diagram, never for a
+// diagram presented as current/real data.
+function buildMermaidSource(dependencyGraph, confidenceMap, allGreen) {
   const lines = ["%%{init: {'flowchart': {'nodeSpacing': 45, 'rankSpacing': 70, 'curve': 'basis'}}}%%", 'graph LR'];
   const declared = new Set();
+  const colorOf = (mod) => {
+    if (allGreen) return '#1F8B4C';
+    if (!confidenceMap || !(mod in confidenceMap)) return null;
+    const c = confidenceMap[mod];
+    return c < 45 ? '#C0392B' : c < 70 ? '#C77800' : '#1F8B4C';
+  };
   const declare = (mod) => {
     if (declared.has(mod)) return;
     lines.push(`    ${sanitizeId(mod)}["${mod}"]`);
@@ -24,6 +35,12 @@ function buildMermaidSource(dependencyGraph) {
     (deps || []).forEach(d => {
       declare(d);
       lines.push(`    ${sanitizeId(mod)} --> ${sanitizeId(d)}`);
+    });
+  }
+  if (confidenceMap || allGreen) {
+    declared.forEach(mod => {
+      const color = colorOf(mod);
+      if (color) lines.push(`    style ${sanitizeId(mod)} fill:${color},color:#fff,stroke:#00000033`);
     });
   }
   return lines.join('\n');
@@ -498,6 +515,48 @@ function buildEntryPointFlow(modules, dependencyGraph) {
   return { entry_points: entryPoints, reachable_from: reachableFrom, unreached };
 }
 
+// Reframes signals the scan ALREADY computed, based on the stated
+// modernization goal - never invents a new score or claims a new
+// analysis pass. "monolith_breakup" uses real dependency fan-in (how
+// many other files import each module) - that's a genuinely different,
+// honest lens on the same data, not decoration.
+function renderGoalInsight(goal, data) {
+  if (!goal || goal === 'assessment' || !data || !data.modules) return '';
+
+  const fanIn = {};
+  data.modules.forEach(m => { fanIn[m.module] = 0; });
+  Object.values(data.dependency_graph || {}).forEach(deps => {
+    deps.forEach(d => { if (d in fanIn) fanIn[d] = (fanIn[d] || 0) + 1; });
+  });
+
+  let title, note, ranked;
+  if (goal === 'monolith_breakup') {
+    title = '🧩 Goal: break apart a monolith — hardest files to extract';
+    note = 'Ranked by how many other files in this scan depend on them, not by risk score. A file can be perfectly clean code and still be the hardest one to pull into its own service if half the codebase imports it.';
+    ranked = [...data.modules].sort((a, b) => (fanIn[b.module] || 0) - (fanIn[a.module] || 0)).slice(0, 5)
+      .map(m => `<div class="fact-row"><b>${escapeHtml(m.path)}</b> — imported by ${fanIn[m.module] || 0} other file(s) in this scan</div>`).join('');
+  } else if (goal === 'cloud_migration' || goal === 'containerize') {
+    title = goal === 'containerize' ? '📦 Goal: containerize — audit these for hardcoded environment assumptions first' : '☁️ Goal: cloud migration — audit these for hardcoded environment assumptions first';
+    note = 'Ranked by count of undocumented hardcoded values, not overall risk score. A hardcoded path, port, or timeout is exactly what silently breaks during a lift-and-shift, even in files that otherwise look fine.';
+    ranked = [...data.modules].filter(m => m.magic_numbers.length).sort((a, b) => b.magic_numbers.length - a.magic_numbers.length).slice(0, 5)
+      .map(m => `<div class="fact-row"><b>${escapeHtml(m.path)}</b> — ${m.magic_numbers.length} undocumented value(s)</div>`).join('')
+      || '<div class="fact-row">No files with undocumented hardcoded values found in this scan.</div>';
+  } else if (goal === 'version_upgrade') {
+    title = '⬆️ Goal: version upgrade — highest-blast-radius files if their behavior changes';
+    note = 'Ranked by dependency fan-in — these are the files most likely to break something else if a version bump changes how they behave, regardless of how risky their own code looks.';
+    ranked = [...data.modules].sort((a, b) => (fanIn[b.module] || 0) - (fanIn[a.module] || 0)).slice(0, 5)
+      .map(m => `<div class="fact-row"><b>${escapeHtml(m.path)}</b> — ${fanIn[m.module] || 0} other file(s) depend on this</div>`).join('');
+  } else {
+    return '';
+  }
+
+  return `<div class="graph-box" style="border-left:3px solid var(--cyan); margin-bottom:16px;">
+    <h2 style="margin-top:0; font-size:18px;">${title}</h2>
+    <p class="section-note">${note}</p>
+    ${ranked}
+  </div>`;
+}
+
 function _estimateEffort(m) {
   // Heuristic: more distinct issues to fix = more effort. A file with
   // one magic number and nothing else is a quick win; a file with
@@ -572,12 +631,25 @@ function renderExecutiveSummary(data) {
   if (high === 0) verdict = `Overall, this codebase is in reasonable shape — nothing here needs urgent attention.`;
   else if (high <= 2) verdict = `Overall, this codebase is mostly fine, with a small number of files that need attention before you touch them.`;
   else verdict = `Overall, a meaningful share of this codebase is risky to change without care — worth budgeting real time before any major work here.`;
+
+  const entryCount = (data.entry_point_flow && data.entry_point_flow.entry_points || []).length;
+  const unreachedCount = (data.entry_point_flow && data.entry_point_flow.unreached || []).length;
+  const folderCount = data.architecture_by_folder ? Object.keys(data.architecture_by_folder).length : 0;
+  const keyFactsParts = [];
+  if (folderCount > 1) keyFactsParts.push(`organized across <b>${folderCount} folders</b>`);
+  if (entryCount) keyFactsParts.push(`<b>${entryCount}</b> likely entry point${entryCount !== 1 ? 's' : ''} found`);
+  if (unreachedCount) keyFactsParts.push(`<b>${unreachedCount}</b> file${unreachedCount !== 1 ? 's' : ''} neither an entry point nor reached by one — worth a look`);
+  const keyFactsHtml = keyFactsParts.length
+    ? `<p style="font-size:13px; color:var(--muted); margin:0 0 16px;">${keyFactsParts.join(' · ')}. See the diagrams and entry-point flow below for detail.</p>`
+    : '';
+
   return `<div class="graph-box" style="margin-bottom:16px;">
     <div style="display:flex; justify-content:space-between; align-items:baseline; flex-wrap:wrap; gap:10px; margin-bottom:14px;">
       <h2 style="margin:0;">Executive summary</h2>
       <span style="font-family:'IBM Plex Mono', monospace; font-size:13px; color:var(--muted);">${total} files scanned · ${avgConf}/100 average confidence</span>
     </div>
-    <p style="font-size:14.5px; margin:0 0 16px;">${verdict}</p>
+    <p style="font-size:14.5px; margin:0 0 8px;">${verdict}</p>
+    ${keyFactsHtml}
     <div style="display:flex; gap:10px; flex-wrap:wrap;">
       <div onclick="filterModulesByRisk('high')" style="cursor:pointer; flex:1; min-width:140px; background:rgba(243,118,107,0.08); border-left:3px solid #F3766B; border-radius:0 8px 8px 0; padding:12px 14px; transition:background 0.15s ease;" onmouseover="this.style.background='rgba(243,118,107,0.16)'" onmouseout="this.style.background='rgba(243,118,107,0.08)'">
         <div style="font-family:'Space Grotesk', sans-serif; font-size:22px; font-weight:700; color:#F3766B;">${high}</div>
@@ -780,6 +852,86 @@ function openExecutiveRoadmapPDF() {
   <p>This is a structural, file-level assessment, not a full code audit. Effort estimates are based on codebase size and structure, not a detailed review of business logic complexity. Some risk may depend on institutional knowledge that only current or former team members hold — this assessment identifies where that knowledge gap likely exists, but cannot recover information that was never documented.</p>
 
   <div class="footer-note">Prepared using greybox (greybox — legacy assessment tool). This is a starting point for planning discussions, not a committed engineering estimate. Figures should be validated with your engineering team before budget commitments are made.</div>
+  </body></html>`);
+  win.document.close();
+}
+
+function openTechnicalRoadmapPDF() {
+  const data = window.__lastScanData || window.__lastOrgData;
+  if (!data) return;
+  const teamInput = document.getElementById('repoTeamSizeInput') || document.getElementById('teamSizeInput');
+  const rateInput = document.getElementById('repoDayRateInput') || document.getElementById('dayRateInput');
+  const teamSize = Math.max(1, parseInt(teamInput && teamInput.value) || 2);
+  const dayRate = Math.max(0, parseInt(rateInput && rateInput.value) || 800);
+  const DAYS_PER_EFFORT_POINT = 1.5;
+
+  const isOrgScan = Array.isArray(data.ranked_repos);
+  const items = isOrgScan ? data.ranked_repos : data.modules;
+  const nameOf = (x) => isOrgScan ? `${x.org}/${x.repo}` : x.path;
+  const effortOf = (x) => isOrgScan ? Math.log2(x.total_files_matched + 2) : Math.log2((x.functions.length || 1) + 2);
+  const confOf = (x) => isOrgScan ? x.avg_confidence : x.confidence;
+
+  const withEffort = items.map(x => ({ name: nameOf(x), confidence: confOf(x), effort: effortOf(x), risk: 100 - confOf(x) }));
+  const quickWins = withEffort.filter(x => x.risk >= 25 && x.effort <= 5).sort((a, b) => a.effort - b.effort);
+  const biggerEfforts = withEffort.filter(x => x.risk >= 25 && x.effort > 5).sort((a, b) => b.risk - a.risk);
+  const steady = withEffort.filter(x => x.risk < 25);
+
+  const phaseDays = (arr) => Math.round(arr.reduce((s, x) => s + x.effort, 0) * DAYS_PER_EFFORT_POINT) || 0;
+  const phaseCost = (days) => days * dayRate;
+  const phaseWeeks = (days) => Math.round(days / teamSize / 5 * 10) / 10;
+  const p1Days = phaseDays(quickWins), p2Days = phaseDays(biggerEfforts);
+  const subject = isOrgScan ? data.orgs.join(', ') : data.repo;
+  const today = new Date().toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' });
+
+  const goal = window.__modernizationGoal;
+  const goalLabels = {
+    assessment: 'Assessment only', version_upgrade: 'Version / dependency upgrade',
+    cloud_migration: 'On-prem → cloud migration', containerize: 'Containerize (EKS / Kubernetes)',
+    monolith_breakup: 'Break apart a monolith', other: 'Other',
+  };
+
+  const row = (x) => `<tr><td>${x.name}</td><td>${x.confidence}/100</td><td>${x.risk}</td><td>${Math.round(x.effort * 10) / 10}</td></tr>`;
+
+  const win = window.open('', '_blank');
+  win.document.write(`<!DOCTYPE html><html><head><title>Technical Roadmap — ${subject}</title>
+  <meta charset="UTF-8">
+  <style>
+    body { font-family: Georgia, 'Times New Roman', serif; color: #1A1A1A; max-width: 850px; margin: 0 auto; padding: 60px 50px; line-height: 1.6; }
+    h1 { font-family: Arial, sans-serif; font-size: 24px; margin-bottom: 4px; }
+    .subtitle { font-family: Arial, sans-serif; color: #666; font-size: 13px; margin-bottom: 32px; }
+    h2 { font-family: Arial, sans-serif; font-size: 15px; text-transform: uppercase; letter-spacing: 0.05em; color: #333; border-bottom: 2px solid #1A1A1A; padding-bottom: 6px; margin-top: 34px; }
+    .phase-summary { background: #F7F7F5; border-left: 4px solid #1A1A1A; padding: 14px 18px; margin: 14px 0; font-family: Arial, sans-serif; font-size: 13px; }
+    .phase-summary b { display: block; font-size: 14px; margin-bottom: 4px; font-family: inherit; }
+    table { width: 100%; border-collapse: collapse; margin-top: 10px; font-size: 12.5px; }
+    th { font-family: Arial, sans-serif; text-align: left; font-size: 10.5px; text-transform: uppercase; color: #666; border-bottom: 1px solid #ccc; padding: 6px; }
+    td { padding: 6px; border-bottom: 1px solid #eee; }
+    .footer-note { margin-top: 40px; padding-top: 18px; border-top: 1px solid #ddd; font-size: 11px; color: #888; font-family: Arial, sans-serif; }
+    .print-btn { font-family: Arial, sans-serif; position: fixed; top: 20px; right: 30px; background: #1A1A1A; color: white; border: none; padding: 10px 18px; border-radius: 4px; cursor: pointer; font-size: 13px; }
+    @media print { .print-btn { display: none; } body { padding: 20px 40px; } }
+  </style>
+  </head><body>
+  <button class="print-btn" onclick="window.print()">Save as PDF →</button>
+  <h1>Technical Modernization Roadmap</h1>
+  <div class="subtitle">${subject} &nbsp;•&nbsp; Goal: ${goalLabels[goal] || 'Assessment only'} &nbsp;•&nbsp; Prepared ${today} &nbsp;•&nbsp; Generated by greybox</div>
+  <p style="font-family: Arial, sans-serif; font-size: 12.5px; color: #555;">Assumptions: ${teamSize} developers, $${dayRate}/day per developer. Effort is a rough proxy from file/function counts, not real complexity — use this to start a planning conversation, not as a committed estimate.</p>
+
+  <h2>Phase 1 — Quick Wins (${quickWins.length} items)</h2>
+  <p style="font-family: Arial, sans-serif; font-size: 12.5px;">Estimated ${p1Days} developer-days (~${phaseWeeks(p1Days)} weeks with ${teamSize} devs, ~$${phaseCost(p1Days).toLocaleString()})</p>
+  <table><tr><th>Item</th><th>Confidence</th><th>Risk</th><th>Effort</th></tr>${quickWins.map(row).join('') || '<tr><td colspan="4">None in this scan.</td></tr>'}</table>
+
+  <h2>Phase 2 — Bigger Efforts (${biggerEfforts.length} items)</h2>
+  <p style="font-family: Arial, sans-serif; font-size: 12.5px;">Estimated ${p2Days} developer-days (~${phaseWeeks(p2Days)} weeks with ${teamSize} devs, ~$${phaseCost(p2Days).toLocaleString()})</p>
+  <table><tr><th>Item</th><th>Confidence</th><th>Risk</th><th>Effort</th></tr>${biggerEfforts.map(row).join('') || '<tr><td colspan="4">None in this scan.</td></tr>'}</table>
+
+  <h2>Monitor, Don't Prioritize (${steady.length} items)</h2>
+  <p style="font-family: Arial, sans-serif; font-size: 12.5px;">Confidence looks fine for now — revisit on your next quarterly scan, not urgent.</p>
+  <table><tr><th>Item</th><th>Confidence</th><th>Risk</th><th>Effort</th></tr>${steady.slice(0, 15).map(row).join('') || '<tr><td colspan="4">None.</td></tr>'}</table>
+  ${steady.length > 15 ? `<p style="font-family: Arial, sans-serif; font-size: 11.5px; color: #888;">...and ${steady.length - 15} more in the full JSON/Markdown export.</p>` : ''}
+
+  <h2>Total</h2>
+  <div class="phase-summary"><b>~${p1Days + p2Days} developer-days across Phase 1 + 2</b>~$${phaseCost(p1Days + p2Days).toLocaleString()} at the inputs above.</div>
+
+  <div class="footer-note">Prepared using greybox. This is a starting sequence based on file-level signals — a real roadmap conversation should validate this against actual code complexity and business priority. Effort estimates are not a committed engineering estimate.</div>
   </body></html>`);
   win.document.close();
 }

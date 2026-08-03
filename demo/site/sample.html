@@ -24,21 +24,54 @@
 </div>
 
 <section class="tight">
+  <div class="wrap">
+    <div class="scan-box">
+      <div class="eyebrow" style="margin-bottom:10px;">What's the goal?</div>
+      <p class="section-note" style="margin-bottom:14px;">Not just tech-debt scoring — the report below reframes itself based on what you're actually trying to do. Try switching goals.</p>
+      <div class="cta-row" id="goalSelector" style="flex-wrap:wrap;">
+        <button type="button" class="filter-btn active" data-goal="assessment" onclick="setSampleGoal('assessment', this)">Just assess what exists</button>
+        <button type="button" class="filter-btn" data-goal="version_upgrade" onclick="setSampleGoal('version_upgrade', this)">Upgrade versions / dependencies</button>
+        <button type="button" class="filter-btn" data-goal="cloud_migration" onclick="setSampleGoal('cloud_migration', this)">On-prem → cloud</button>
+        <button type="button" class="filter-btn" data-goal="containerize" onclick="setSampleGoal('containerize', this)">Containerize (EKS / Kubernetes)</button>
+        <button type="button" class="filter-btn" data-goal="monolith_breakup" onclick="setSampleGoal('monolith_breakup', this)">Break apart a monolith</button>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section class="tight">
+  <div class="wrap" id="goalInsightHolder"></div>
   <div class="wrap" id="priorityBannerHolder"></div>
 </section>
 
 <section class="tight">
   <div class="wrap">
-    <h2>Dependency Graph</h2>
+    <h2>Dependency Graph — Before &amp; After</h2>
     <p class="section-note">Drag to pan, scroll to zoom, or open full-size.</p>
     <div class="graph-box">
-      <div class="graph-frame" id="reportGraph"></div>
-      <div class="graph-toolbar">
-        <button onclick="graphZoomOut(document.getElementById('reportGraph'))">−</button>
-        <button onclick="graphZoomIn(document.getElementById('reportGraph'))">+</button>
-        <button onclick="graphReset(document.getElementById('reportGraph'))">Reset</button>
-        <a href="javascript:void(0)" onclick="openGraphFullSize(document.getElementById('reportGraph'))">Open full-size ↗</a>
+      <div class="two-col">
+        <div>
+          <div style="font-family:'IBM Plex Mono',monospace; font-size:11.5px; color:var(--muted); text-transform:uppercase; letter-spacing:0.04em; margin-bottom:8px;">Today — color-coded by real confidence score</div>
+          <div class="graph-frame" id="reportGraphBefore"></div>
+          <div class="graph-toolbar">
+            <button onclick="graphZoomOut(document.getElementById('reportGraphBefore'))">−</button>
+            <button onclick="graphZoomIn(document.getElementById('reportGraphBefore'))">+</button>
+            <button onclick="graphReset(document.getElementById('reportGraphBefore'))">Reset</button>
+            <a href="javascript:void(0)" onclick="openGraphFullSize(document.getElementById('reportGraphBefore'))">Open full-size ↗</a>
+          </div>
+        </div>
+        <div>
+          <div style="font-family:'IBM Plex Mono',monospace; font-size:11.5px; color:var(--muted); text-transform:uppercase; letter-spacing:0.04em; margin-bottom:8px;" id="sampleAfterLabel">After</div>
+          <div class="graph-frame" id="reportGraphAfter"></div>
+          <div class="graph-toolbar">
+            <button onclick="graphZoomOut(document.getElementById('reportGraphAfter'))">−</button>
+            <button onclick="graphZoomIn(document.getElementById('reportGraphAfter'))">+</button>
+            <button onclick="graphReset(document.getElementById('reportGraphAfter'))">Reset</button>
+            <a href="javascript:void(0)" onclick="openGraphFullSize(document.getElementById('reportGraphAfter'))">Open full-size ↗</a>
+          </div>
+        </div>
       </div>
+      <p class="scan-note" id="sampleAfterCaption" style="margin-top:10px; margin-bottom:0;"></p>
     </div>
   </div>
 </section>
@@ -68,6 +101,7 @@
     <div class="cta-row" style="margin-bottom:24px;">
       <button class="scan-btn" onclick="openExecutiveRoadmapPDF()">Get executive summary (PDF) →</button>
       <button class="scan-btn" style="background:var(--surface-2); color:var(--text); border:1px solid var(--line);" onclick="downloadFullRoadmap()">Technical roadmap (Markdown)</button>
+        <button class="scan-btn" style="background:var(--surface-2); color:var(--text); border:1px solid var(--line);" onclick="openTechnicalRoadmapPDF()">Technical roadmap (PDF)</button>
       <button class="scan-btn" style="background:var(--surface-2); color:var(--text); border:1px solid var(--line);" onclick="downloadFullRoadmapDocx()">Roadmap (Word .docx)</button>
       <button class="scan-btn" onclick="downloadSampleReport()">Download full report (Markdown)</button>
       <button class="scan-btn" style="background:var(--surface-2); color:var(--text); border:1px solid var(--line);" onclick="downloadSampleJson()">Download raw JSON</button>
@@ -91,6 +125,16 @@
   window.__lastScanData = SAMPLE_DATA;
   SAMPLE_DATA.architecture_by_folder = buildFolderArchitectureGraph(SAMPLE_DATA.modules, SAMPLE_DATA.dependency_graph);
   SAMPLE_DATA.entry_point_flow = buildEntryPointFlow(SAMPLE_DATA.modules, SAMPLE_DATA.dependency_graph);
+  window.__modernizationGoal = 'assessment';
+
+  function setSampleGoal(goal, btnEl) {
+    window.__modernizationGoal = goal;
+    document.querySelectorAll('#goalSelector .filter-btn').forEach(b => b.classList.remove('active'));
+    if (btnEl) btnEl.classList.add('active');
+    document.getElementById('goalInsightHolder').innerHTML = renderGoalInsight(goal, SAMPLE_DATA);
+    renderSampleGraphs();
+  }
+
   document.getElementById('priorityBannerHolder').innerHTML = renderExecutiveSummary(SAMPLE_DATA) + renderPriorityBanner(SAMPLE_DATA) + renderFindingsChart(SAMPLE_DATA) + renderConfidenceExplainer();
   document.getElementById('moduleCardsHolder').innerHTML = renderModuleCardsSection(SAMPLE_DATA.modules);
   document.getElementById('entryFlowHolder').innerHTML = renderEntryPointFlow(SAMPLE_DATA);
@@ -100,9 +144,33 @@
     document.getElementById('archGraphBox').innerHTML = '<p class="section-note">Everything in this sample lives in one folder, or nothing links across folders — nothing to diagram here.</p>';
   }
 
+  const sampleConfidenceMap = {};
+  SAMPLE_DATA.modules.forEach(m => { sampleConfidenceMap[m.module] = m.confidence; });
+
+  async function renderSampleGraphs() {
+    const goal = window.__modernizationGoal;
+    const afterIsArchitecture = goal === 'monolith_breakup' && hasFolderStructure;
+    document.getElementById('sampleAfterLabel').textContent = afterIsArchitecture
+      ? 'After — candidate service boundaries (by folder)'
+      : 'After — illustrative target once flagged files are addressed';
+    document.getElementById('sampleAfterCaption').textContent = afterIsArchitecture
+      ? "Not a real proposed architecture — this reuses today's folder structure as a starting point for where service boundaries could go. Deciding actual boundaries needs a team, not just an import graph."
+      : "Not a computed future state — dependencies don't disappear just from cleanup. This shows the same structure with the flagged files above resolved, nothing removed or invented.";
+
+    const beforeSrc = buildMermaidSource(SAMPLE_DATA.dependency_graph, sampleConfidenceMap);
+    await renderZoomableGraph(document.getElementById('reportGraphBefore'), beforeSrc, 'Sample dependency graph — before');
+
+    if (afterIsArchitecture) {
+      const afterSrc = buildMermaidSource(SAMPLE_DATA.architecture_by_folder);
+      await renderZoomableGraph(document.getElementById('reportGraphAfter'), afterSrc, 'Sample candidate service boundaries');
+    } else {
+      const afterSrc = buildMermaidSource(SAMPLE_DATA.dependency_graph, null, true);
+      await renderZoomableGraph(document.getElementById('reportGraphAfter'), afterSrc, 'Sample illustrative target state');
+    }
+  }
+
   (async () => {
-    const src = buildMermaidSource(SAMPLE_DATA.dependency_graph);
-    await renderZoomableGraph(document.getElementById('reportGraph'), src, 'Sample dependency graph');
+    await renderSampleGraphs();
     if (hasFolderStructure) {
       const archSrc = buildMermaidSource(SAMPLE_DATA.architecture_by_folder);
       await renderZoomableGraph(document.getElementById('archGraph'), archSrc, 'Sample architecture by folder');

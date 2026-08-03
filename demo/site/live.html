@@ -25,7 +25,58 @@
 
 <section style="border-bottom:none;">
   <div class="wrap">
+
+    <div class="scan-box" style="margin-bottom:16px;">
+      <div class="eyebrow" style="margin-bottom:10px;">Step 1 — what's the goal?</div>
+      <p class="section-note" style="margin-bottom:14px;">This isn't just a tech-debt scanner — the more we know about what you're actually trying to do, the more useful the report gets. Pick the closest fit; you can change it any time.</p>
+      <div class="cta-row" id="goalSelector" style="flex-wrap:wrap;">
+        <button type="button" class="filter-btn active" data-goal="assessment" onclick="setModernizationGoal('assessment', this)">Just assess what exists</button>
+        <button type="button" class="filter-btn" data-goal="version_upgrade" onclick="setModernizationGoal('version_upgrade', this)">Upgrade versions / dependencies</button>
+        <button type="button" class="filter-btn" data-goal="cloud_migration" onclick="setModernizationGoal('cloud_migration', this)">On-prem → cloud</button>
+        <button type="button" class="filter-btn" data-goal="containerize" onclick="setModernizationGoal('containerize', this)">Containerize (EKS / Kubernetes)</button>
+        <button type="button" class="filter-btn" data-goal="monolith_breakup" onclick="setModernizationGoal('monolith_breakup', this)">Break apart a monolith</button>
+        <button type="button" class="filter-btn" data-goal="other" onclick="setModernizationGoal('other', this)">Something else</button>
+      </div>
+      <p class="scan-note" id="goalNote" style="margin-top:12px; margin-bottom:0;"></p>
+    </div>
+
+    <div class="scan-box" style="margin-bottom:16px;">
+      <div style="display:flex; justify-content:space-between; align-items:center; cursor:pointer; gap:10px;" onclick="const b=document.getElementById('contextSourcesBody'); const open=b.classList.toggle('open'); this.querySelector('.chev').textContent = open ? '▴ hide' : '▾ show what\'s planned';">
+        <div>
+          <div class="eyebrow" style="margin-bottom:4px;">Step 2 — give it more context <span style="color:var(--muted); font-family:'IBM Plex Sans',sans-serif; text-transform:none; letter-spacing:0; font-size:13px;">(optional, not built yet — see below)</span></div>
+        </div>
+        <span class="chev" style="color:var(--muted); font-size:13px;">▾ show what's planned</span>
+      </div>
+      <div class="module-detail" id="contextSourcesBody" style="border-top:none; margin-top:10px;">
+        <p class="section-note" style="margin-top:0;">A confidence score from code alone is only part of the picture. A modernization plan gets meaningfully better with the context that already exists elsewhere — a Jira ticket explaining <i>why</i> a module is a mess, a Confluence page with the original design intent, a ServiceNow change record showing what broke last time someone touched it. None of the sources below are connected yet — this is the roadmap, shown honestly as not-yet-built, not a working integration.</p>
+        <div class="card-grid">
+          <div class="feature-card" style="opacity:0.7;">
+            <span class="icon">📘</span>
+            <b>Confluence <span style="color:var(--muted); font-weight:400; font-size:11px;">— coming soon</span></b>
+            <p>Would pull existing design docs and runbooks to cross-reference against what the code actually does — catching cases where the docs and the code disagree.</p>
+          </div>
+          <div class="feature-card" style="opacity:0.7;">
+            <span class="icon">🎫</span>
+            <b>Jira <span style="color:var(--muted); font-weight:400; font-size:11px;">— coming soon</span></b>
+            <p>Would surface open tickets and known-issue history tied to the riskiest files, so a low confidence score comes with "and here's why, per the team that touched it."</p>
+          </div>
+          <div class="feature-card" style="opacity:0.7;">
+            <span class="icon">🛠️</span>
+            <b>ServiceNow <span style="color:var(--muted); font-weight:400; font-size:11px;">— coming soon</span></b>
+            <p>Would pull change and incident history — which files have caused production issues before is a real risk signal code structure alone can't see.</p>
+          </div>
+          <div class="feature-card" style="opacity:0.7;">
+            <span class="icon">📁</span>
+            <b>SharePoint <span style="color:var(--muted); font-weight:400; font-size:11px;">— coming soon</span></b>
+            <p>Would ingest architecture diagrams and design documents already written internally, instead of starting the assessment from zero context.</p>
+          </div>
+        </div>
+        <p class="scan-note" style="margin-top:14px; margin-bottom:0;">Want one of these prioritized? <a href="contact.html" style="color:var(--cyan);">Tell us which →</a></p>
+      </div>
+    </div>
+
     <div class="scan-box">
+      <div class="eyebrow" style="margin-bottom:10px;">Step 3 — scan your code</div>
       <div class="cta-row" style="margin-bottom:14px;">
         <select class="scan-input" id="scanModeSelect" style="flex:0 0 240px;" onchange="setScanMode(this.value)">
           <option value="repo">Single GitHub repo</option>
@@ -77,6 +128,28 @@
   document.getElementById('nav-placeholder').outerHTML = renderNavHtml('live.html');
 
   let scanMode = 'repo';
+  window.__modernizationGoal = 'assessment';
+
+  const GOAL_NOTES = {
+    assessment: 'Default view — files ranked by risk alone, no particular modernization path assumed.',
+    version_upgrade: 'The report will call out files with the most cross-file dependencies — those are the ones most likely to break other things when a version bump changes their behavior.',
+    cloud_migration: 'The report will flag files with the most undocumented hardcoded values — these are exactly what tends to break silently during a lift-and-shift (a hardcoded path, IP, or port that only worked because it matched the old server).',
+    containerize: 'The report will flag files with the most undocumented hardcoded values — the same config/environment assumptions that trip up a lift-and-shift are usually what needs externalizing into env vars or config maps for a container.',
+    monolith_breakup: 'The report will rank files by how many other files depend on them — high fan-in files are the ones hardest to cleanly extract into a separate service, regardless of how risky their own code looks.',
+    other: 'General risk ranking shown — tell us more about the goal via the contact page and we can tailor this further.',
+  };
+
+  function setModernizationGoal(goal, btnEl) {
+    window.__modernizationGoal = goal;
+    document.querySelectorAll('#goalSelector .filter-btn').forEach(b => b.classList.remove('active'));
+    if (btnEl) btnEl.classList.add('active');
+    document.getElementById('goalNote').textContent = GOAL_NOTES[goal] || '';
+    // Re-render the goal-aware insight if a scan is already showing.
+    if (window.__lastScanData) {
+      const holder = document.getElementById('goalInsightHolder');
+      if (holder) holder.innerHTML = renderGoalInsight(window.__modernizationGoal, window.__lastScanData);
+    }
+  }
   setScanMode('repo');
 
   function setScanMode(mode) {
@@ -171,6 +244,7 @@
       html += `<div class="cta-row" style="margin-top:16px; flex-wrap:wrap;">
         <button class="scan-btn" onclick="openExecutiveRoadmapPDF()">Get executive summary (PDF) →</button>
         <button class="scan-btn" style="background:var(--surface-2); color:var(--text); border:1px solid var(--line);" onclick="downloadFullRoadmap()">Technical roadmap (Markdown)</button>
+        <button class="scan-btn" style="background:var(--surface-2); color:var(--text); border:1px solid var(--line);" onclick="openTechnicalRoadmapPDF()">Technical roadmap (PDF)</button>
         <button class="scan-btn" style="background:var(--surface-2); color:var(--text); border:1px solid var(--line);" onclick="downloadFullRoadmapDocx()">Roadmap (Word .docx)</button>
       </div>`;
 
@@ -303,6 +377,7 @@
       <div class="cta-row" style="margin-top:16px; flex-wrap:wrap;">
         <button class="scan-btn" onclick="openExecutiveRoadmapPDF()">Get executive summary (PDF) →</button>
         <button class="scan-btn" style="background:var(--surface-2); color:var(--text); border:1px solid var(--line);" onclick="downloadFullRoadmap()">Technical roadmap (Markdown)</button>
+        <button class="scan-btn" style="background:var(--surface-2); color:var(--text); border:1px solid var(--line);" onclick="openTechnicalRoadmapPDF()">Technical roadmap (PDF)</button>
       <button class="scan-btn" style="background:var(--surface-2); color:var(--text); border:1px solid var(--line);" onclick="downloadFullRoadmapDocx()">Roadmap (Word .docx)</button>
       </div>
       <div class="cta-row" style="margin-top:10px;">
@@ -311,25 +386,54 @@
       </div>
     </div>`;
 
-    html = renderExecutiveSummary(data) + html;
+    html = renderExecutiveSummary(data) + `<div id="goalInsightHolder">${renderGoalInsight(window.__modernizationGoal, data)}</div>` + html;
     html += renderPriorityBanner(data);
     html += renderFindingsChart(data);
-    html += renderModuleCardsSection(data.modules);
     html += renderConfidenceExplainer();
 
-    html += `<div class="graph-box" style="margin-top:8px;">
-      <h2 style="margin-top:0;">Dependency Graph</h2>
-      <p class="section-note" id="graphNote" style="margin-bottom:12px;"></p>
-      <div class="graph-frame" id="liveGraph"></div>
-      <div class="graph-toolbar">
-        <button onclick="graphZoomOut(document.getElementById('liveGraph'))">−</button>
-        <button onclick="graphZoomIn(document.getElementById('liveGraph'))">+</button>
-        <button onclick="graphReset(document.getElementById('liveGraph'))">Reset</button>
-        <a href="javascript:void(0)" onclick="openGraphFullSize(document.getElementById('liveGraph'))">Open full-size ↗</a>
-      </div>
-    </div>`;
+    const riskyNames = data.modules.slice(0, 8).map(m => m.module);
+    const subset = computeGraphSubset(data.dependency_graph, riskyNames, 12);
+    const confidenceMap = {};
+    data.modules.forEach(m => { confidenceMap[m.module] = m.confidence; });
 
     const hasFolderStructure = Object.values(data.architecture_by_folder || {}).some(deps => deps.length);
+    const goal = window.__modernizationGoal;
+    const afterIsArchitecture = goal === 'monolith_breakup' && hasFolderStructure;
+    const afterLabel = afterIsArchitecture
+      ? 'After — candidate service boundaries (by folder)'
+      : 'After — illustrative target once flagged files are addressed';
+    const afterCaption = afterIsArchitecture
+      ? 'Not a real proposed architecture — this reuses today\'s folder structure as a starting point for where service boundaries could go. Deciding actual boundaries needs a team, not just an import graph.'
+      : 'Not a computed future state — dependencies don\'t disappear just from cleanup. This shows the same structure with the flagged files above resolved, nothing removed or invented.';
+
+    html += `<div class="graph-box" style="margin-top:8px;">
+      <h2 style="margin-top:0;">Dependency Graph — Before &amp; After</h2>
+      <p class="section-note" id="graphNote" style="margin-bottom:12px;"></p>
+      <div class="two-col">
+        <div>
+          <div style="font-family:'IBM Plex Mono',monospace; font-size:11.5px; color:var(--muted); text-transform:uppercase; letter-spacing:0.04em; margin-bottom:8px;">Today — color-coded by real confidence score</div>
+          <div class="graph-frame" id="liveGraphBefore"></div>
+          <div class="graph-toolbar">
+            <button onclick="graphZoomOut(document.getElementById('liveGraphBefore'))">−</button>
+            <button onclick="graphZoomIn(document.getElementById('liveGraphBefore'))">+</button>
+            <button onclick="graphReset(document.getElementById('liveGraphBefore'))">Reset</button>
+            <a href="javascript:void(0)" onclick="openGraphFullSize(document.getElementById('liveGraphBefore'))">Open full-size ↗</a>
+          </div>
+        </div>
+        <div>
+          <div style="font-family:'IBM Plex Mono',monospace; font-size:11.5px; color:var(--muted); text-transform:uppercase; letter-spacing:0.04em; margin-bottom:8px;">${afterLabel}</div>
+          <div class="graph-frame" id="liveGraphAfter"></div>
+          <div class="graph-toolbar">
+            <button onclick="graphZoomOut(document.getElementById('liveGraphAfter'))">−</button>
+            <button onclick="graphZoomIn(document.getElementById('liveGraphAfter'))">+</button>
+            <button onclick="graphReset(document.getElementById('liveGraphAfter'))">Reset</button>
+            <a href="javascript:void(0)" onclick="openGraphFullSize(document.getElementById('liveGraphAfter'))">Open full-size ↗</a>
+          </div>
+        </div>
+      </div>
+      <p class="scan-note" style="margin-top:10px; margin-bottom:0;">${afterCaption}</p>
+    </div>`;
+
     html += `<div class="graph-box" style="margin-top:8px;">
       <h2 style="margin-top:0;">Architecture Diagram (by folder)</h2>
       <p class="section-note" style="margin-bottom:12px;">A higher-level view than the file-by-file graph above: files grouped by folder, showing how those groups connect. Built from the same import data, just aggregated — not a new analysis pass.</p>
@@ -344,6 +448,7 @@
     </div>`;
 
     html += renderEntryPointFlow(data);
+    html += renderModuleCardsSection(data.modules);
 
     html += '<div style="margin:20px 0; display:flex; gap:10px; flex-wrap:wrap;"><button class="scan-btn" onclick="downloadReport()">Download full report (Markdown)</button><button class="scan-btn" style="background:var(--surface-2); color:var(--text); border:1px solid var(--line);" onclick="downloadJson()">Download raw JSON</button></div>';
 
@@ -361,13 +466,19 @@
     results.innerHTML = html;
     calcRepoCost(repoEffort);
 
-    const riskyNames = data.modules.slice(0, 8).map(m => m.module);
-    const subset = computeGraphSubset(data.dependency_graph, riskyNames, 12);
-    const graphSrc = buildMermaidSource(subset.graph);
-    await renderZoomableGraph(document.getElementById('liveGraph'), graphSrc, `${data.repo} dependency graph`);
+    const graphSrc = buildMermaidSource(subset.graph, confidenceMap);
+    await renderZoomableGraph(document.getElementById('liveGraphBefore'), graphSrc, `${data.repo} dependency graph — before`);
     document.getElementById('graphNote').textContent = subset.kept < subset.total
       ? `Showing the ${subset.kept} most-connected/riskiest of ${subset.total} files with dependencies — the rest are in the full downloadable report.`
       : `All ${subset.total} files with dependencies shown.`;
+
+    if (afterIsArchitecture) {
+      const afterSrc = buildMermaidSource(data.architecture_by_folder);
+      await renderZoomableGraph(document.getElementById('liveGraphAfter'), afterSrc, `${data.repo} candidate service boundaries`);
+    } else {
+      const afterSrc = buildMermaidSource(subset.graph, null, true);
+      await renderZoomableGraph(document.getElementById('liveGraphAfter'), afterSrc, `${data.repo} illustrative target state`);
+    }
 
     if (hasFolderStructure) {
       const archSrc = buildMermaidSource(data.architecture_by_folder);
