@@ -68,9 +68,30 @@
           <div class="feature-card" style="opacity:0.7;">
             <span class="icon">📁</span>
             <b>SharePoint <span style="color:var(--muted); font-weight:400; font-size:11px;">— coming soon</span></b>
-            <p>Would ingest architecture diagrams and design documents already written internally, instead of starting the assessment from zero context.</p>
+            <p>Would ingest design documents and runbooks already written internally, instead of starting the assessment from zero context.</p>
+          </div>
+          <div class="feature-card" style="opacity:0.7;">
+            <span class="icon">🗺️</span>
+            <b>Lucidchart / draw.io <span style="color:var(--muted); font-weight:400; font-size:11px;">— coming soon</span></b>
+            <p>Would read an existing architecture diagram and check it against the dependency graph greybox builds from the actual code — flagging where the diagram and the code disagree, not just displaying both side by side.</p>
           </div>
         </div>
+
+        <div style="margin-top:18px; position:relative;">
+          <p class="scan-note" style="margin-bottom:10px;"><b style="color:var(--text);">What that finding would look like</b> — this is a fabricated example to show the shape of the output, not a real scan result. No diagram was actually read.</p>
+          <div style="position:relative; opacity:0.85;">
+            <span style="position:absolute; top:10px; right:10px; z-index:2; background:#3a1d1d; border:1px solid #7a3a3a; color:#f0a8a8; font-family:'IBM Plex Mono',monospace; font-size:11px; letter-spacing:0.05em; padding:3px 8px; border-radius:4px;">MOCKUP — ILLUSTRATIVE ONLY, NOT REAL OUTPUT</span>
+            <div class="module-detail open" style="border-top:none; filter:saturate(0.75);">
+              <div class="module-name" style="margin-bottom:6px;">billing/reconcile_ledger.py</div>
+              <div class="conf-label" style="margin-bottom:10px;">confidence: 41% — low</div>
+              <p class="fact-row"><b>Diagram vs. code:</b> your draw.io diagram shows <code>reconcile_ledger</code> calling only <code>ledger_db</code>. The actual code also calls <code>notifications_service</code> directly — a dependency the diagram doesn't show.</p>
+              <p class="fact-row"><b>Confluence vs. code:</b> the design doc says reconciliation runs "nightly, batched." The code runs it synchronously on every request — no batching found.</p>
+              <p class="fact-row"><b>From code alone:</b> bare <code>except:</code> block at line 118, no comment explaining why.</p>
+              <div class="answer" style="margin-top:10px;"><b>Suggested next step:</b> confirm with whoever owns billing whether the notifications call is intentional — it's a real production dependency that isn't in either the diagram or the docs.</div>
+            </div>
+          </div>
+        </div>
+
         <p class="scan-note" style="margin-top:14px; margin-bottom:0;">Want one of these prioritized? <a href="contact.html" style="color:var(--cyan);">Tell us which →</a></p>
       </div>
     </div>
