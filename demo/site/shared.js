@@ -1089,3 +1089,21 @@ function triggerDownload(blob, filename) {
   a.click();
   URL.revokeObjectURL(url);
 }
+
+function renderFooterHtml() {
+  return `<footer class="site-footer"><div class="site-footer-inner">
+    <div class="sf-brand">
+      <a class="topnav-brand" href="index.html"><img src="assets/favicon.png" alt="" width="28" height="28" style="border-radius:6px;">greybox</a>
+      <p>A free, open-source first look at legacy code: a dependency graph, a confidence score per file, and a next step for each risky one.</p>
+    </div>
+    <div class="sf-col"><h4>Product</h4>
+      <a href="sample.html">Sample report</a><a href="live.html">Scan a public repo</a><a href="pricing.html">Pricing</a></div>
+    <div class="sf-col"><h4>Learn</h4>
+      <a href="case-studies.html">Case studies</a><a href="why.html">Why greybox</a><a href="https://github.com/itsgreybox/greybox" target="_blank" rel="noopener noreferrer">Source on GitHub</a></div>
+    <div class="sf-col"><h4>Talk to us</h4>
+      <a href="contact.html">Contact</a><a href="contact.html">Request a feature</a></div>
+  </div>
+  <div class="site-footer-base"><span>&copy; 2026 greybox</span>
+    <span>Sample reports use made-up data. Case studies are public incidents; greybox was not used on them.</span></div></footer>`;
+}
+(function () { const f = document.getElementById('footer-placeholder'); if (f) f.outerHTML = renderFooterHtml(); })();

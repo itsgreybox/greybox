@@ -500,3 +500,14 @@ footer a { color: var(--cyan); }
   /* hero decorative image never causes horizontal scroll on mobile */
   .hero img { max-width: 160px !important; }
 }
+
+/* shared site footer */
+.site-footer { background: var(--text); color: #D9DBD6; margin-top: 0; }
+.site-footer-inner { max-width: 1120px; margin: 0 auto; padding: 48px 24px 32px; display: grid; grid-template-columns: 2fr 1fr 1fr 1fr; gap: 40px; }
+.site-footer .topnav-brand { color: #fff; }
+.sf-brand p { font-size: 14.5px; line-height: 1.6; color: #B9BCB6; max-width: 38ch; margin: 14px 0 0; }
+.sf-col h4 { font-family: 'Archivo', sans-serif; font-size: 14px; color: #fff; margin: 0 0 12px; }
+.sf-col a { display: block; color: #B9BCB6; text-decoration: none; font-size: 14.5px; padding: 4px 0; }
+.sf-col a:hover { color: var(--paint); }
+.site-footer-base { max-width: 1120px; margin: 0 auto; padding: 18px 24px 28px; border-top: 1px solid #3A4045; display: flex; justify-content: space-between; gap: 16px; flex-wrap: wrap; font-size: 13px; color: #9A9E98; }
+@media (max-width: 760px) { .site-footer-inner { grid-template-columns: 1fr 1fr; } .sf-brand { grid-column: 1 / -1; } }
