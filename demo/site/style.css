@@ -510,3 +510,20 @@ footer a { color: var(--cyan); }
 .sf-col a:hover { color: var(--paint); }
 .site-footer-base { max-width: 1120px; margin: 0 auto; padding: 18px 24px 28px; border-top: 1px solid #3A4045; display: flex; justify-content: space-between; gap: 16px; flex-wrap: wrap; font-size: 13px; color: #9A9E98; }
 @media (max-width: 760px) { .site-footer-inner { grid-template-columns: 1fr 1fr; } .sf-brand { grid-column: 1 / -1; } }
+
+/* ===== v3 theme: tinted page, dark nav and banners ===== */
+:root { --bg:#EAF0FA; --surface:#F8FAFE; --surface-2:#E9EFF9; --line:#CBD6EA; --ink:#081326; }
+body { background-color: var(--bg);
+  background-image: radial-gradient(rgba(34,85,229,0.09) 1px, transparent 1px);
+  background-size: 22px 22px; }
+.topnav { background: rgba(8,19,38,0.94); border-bottom: 1px solid rgba(255,255,255,0.08); }
+.topnav-brand { color: #fff; }
+.topnav-links a { color: #B5C3DC; }
+.topnav-links a:hover { color: #fff; }
+.topnav-links a.active { color: #fff; border-bottom-color: #6C93FF; }
+.topnav-links a.nav-ghost { color: #E6EEFF !important; border: 1px solid rgba(255,255,255,0.3); border-radius: 8px; padding: 7px 14px; }
+.topnav-links a.nav-ghost:hover { background: rgba(255,255,255,0.1); }
+.page-header { background: radial-gradient(700px 300px at 85% 0%, rgba(80,120,255,0.35), transparent 65%), linear-gradient(135deg, #081326 0%, #112A5C 100%);
+  padding: 56px 0 40px; margin-bottom: 8px; border-bottom: 1px solid rgba(255,255,255,0.08); }
+.page-header h1, .page-header h2 { color: #fff; }
+.page-header p, .page-header .sub { color: #B5C3DC; }
