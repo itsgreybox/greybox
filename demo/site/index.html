@@ -15,6 +15,7 @@
 
 <div id="nav-placeholder"></div>
 
+<!-- HERO -->
 <div class="hero" style="overflow:hidden;">
   <div class="wrap">
     <div class="hero-grid">
@@ -36,6 +37,37 @@
   </div>
 </div>
 
+<!-- SHOWCASE 1: real dependency graph, live-rendered from the actual sample data -->
+<section class="tight">
+  <div class="wrap">
+    <h2>A real dependency graph, not a guess from one pasted file</h2>
+    <p class="section-note">This is the actual rendering code from the sample report below, running live on this page right now — not a screenshot, not a mockup. <a href="sample.html" style="color:var(--cyan);">Same data in the full report →</a></p>
+    <div class="graph-box">
+      <div style="font-family:'IBM Plex Mono',monospace; font-size:11.5px; color:var(--muted); text-transform:uppercase; letter-spacing:0.04em; margin-bottom:8px;">Illustrative sample — color-coded by real confidence score</div>
+      <div class="graph-frame" id="homeGraph"></div>
+      <div class="graph-toolbar">
+        <button onclick="graphZoomOut(document.getElementById('homeGraph'))">−</button>
+        <button onclick="graphZoomIn(document.getElementById('homeGraph'))">+</button>
+        <button onclick="graphReset(document.getElementById('homeGraph'))">Reset</button>
+        <a href="javascript:void(0)" onclick="openGraphFullSize(document.getElementById('homeGraph'))">Open full-size ↗</a>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- SHOWCASE 2: real confidence score + real module finding -->
+<section style="border-bottom:none;">
+  <div class="wrap">
+    <h2>A confidence score that's arithmetic, not a vibe</h2>
+    <p class="section-note">Computed from real structural signals — branch complexity, undocumented constants, error handling — before any AI is involved. Here's one real module from the sample report, rendered live below.</p>
+    <div class="two-col">
+      <div id="homeExecSummary"></div>
+      <div id="homeModuleCard"></div>
+    </div>
+  </div>
+</section>
+
+<!-- YOUR CODE NEVER LEAVES -->
 <section class="tight" style="border-bottom:1px solid var(--line);">
   <div class="wrap">
     <h2>Your code never has to leave your network</h2>
@@ -48,6 +80,17 @@
   </div>
 </section>
 
+<!-- PORTFOLIO MODE SHOWCASE (real feature, CAST-governance equivalent) -->
+<section style="border-bottom:none;">
+  <div class="wrap">
+    <h2>Take command of a whole portfolio, not just one repo</h2>
+    <p class="section-note">If you've got a folder full of repos — everything cloned from a GitHub org — point <code style="background:var(--surface); padding:2px 6px; border-radius:4px; font-family:'IBM Plex Mono',monospace; font-size:13px;">--portfolio</code> at the parent folder. Every subdirectory gets a real, full scan — no sampling — ranked into Quick Wins, Bigger Efforts, and Lower Priority.</p>
+    <pre style="background:var(--surface); border:1px solid var(--line); border-radius:8px; padding:16px 18px; font-family:'IBM Plex Mono',monospace; font-size:13px; color:var(--cyan); overflow-x:auto; margin-top:16px;">greybox /path/to/org-repos --portfolio --output portfolio_report.md</pre>
+    <p class="section-note" style="margin-top:14px;">This is real, working, in the open-source CLI today — not a roadmap item. The web demo's org-scan feature samples a few files per repo to stay fast within API rate limits; locally, there's no rate limit, so you get the full thing.</p>
+  </div>
+</section>
+
+<!-- GAPS VS REAL TOOLS -->
 <section style="border-bottom:none;">
   <div class="wrap">
     <h2>Two real gaps in the tools you'd otherwise reach for</h2>
@@ -70,6 +113,21 @@
   </div>
 </section>
 
+<!-- USE CASES — TILE GRID -->
+<section style="border-bottom:none;">
+  <div class="wrap">
+    <h2>Where this actually gets used</h2>
+    <p class="section-note">The most common misconception about this tool: that it's only for dead, untouched systems. Most real legacy pain isn't that — it's code your team ships to every week, where nobody left fully understands why it works the way it does.</p>
+    <div class="card-grid">
+      <div class="feature-card"><span class="icon">🔧</span><b>Before a risky change</b><p>You're about to touch a module you didn't write, that's been "working fine" for years. Scan first — know what's fragile before you edit it, not after it breaks in production.</p></div>
+      <div class="feature-card"><span class="icon">🧭</span><b>Onboarding a new engineer</b><p>Instead of "ask Dave, he's been here longest," give them a real starting map of what's risky, what's clean, and what to be careful with.</p></div>
+      <div class="feature-card"><span class="icon">🚨</span><b>After an incident</b><p>"Why did changing the notification service break the payment flow" is a legacy-understanding problem, not a bug — even on a system your team ships to weekly.</p></div>
+      <div class="feature-card"><span class="icon">📅</span><b>Quarterly health check</b><p>Run it periodically on core modules, not just once before a migration decision — a confidence score that drops over time is an early warning.</p></div>
+    </div>
+  </div>
+</section>
+
+<!-- SCALE OF THE PROBLEM — real cited stats, CAST "exclusive dataset" equivalent -->
 <section id="industry" class="tight">
   <div class="wrap">
     <h2>This isn't a niche problem</h2>
@@ -82,19 +140,7 @@
   </div>
 </section>
 
-<section style="border-bottom:none;">
-  <div class="wrap">
-    <h2>"Legacy" doesn't mean abandoned</h2>
-    <p class="section-note">The most common misconception about this tool: that it's only for dead, untouched systems. Most real legacy pain isn't that — it's code your team ships to every week, where nobody left fully understands why it works the way it does.</p>
-    <div class="card-grid">
-      <div class="feature-card"><span class="icon">🔧</span><b>Before a risky change</b><p>You're about to touch a module you didn't write, that's been "working fine" for years. Scan first — know what's fragile before you edit it, not after it breaks in production.</p></div>
-      <div class="feature-card"><span class="icon">🧭</span><b>Onboarding a new engineer</b><p>Instead of "ask Dave, he's been here longest," give them a real starting map of what's risky, what's clean, and what to be careful with.</p></div>
-      <div class="feature-card"><span class="icon">🚨</span><b>After an incident</b><p>"Why did changing the notification service break the payment flow" is a legacy-understanding problem, not a bug — even on a system your team ships to weekly.</p></div>
-      <div class="feature-card"><span class="icon">📅</span><b>Quarterly health check</b><p>Run it periodically on core modules, not just once before a migration decision — a confidence score that drops over time is an early warning.</p></div>
-    </div>
-  </div>
-</section>
-
+<!-- WHAT TO DO NEXT -->
 <section style="border-bottom:none;">
   <div class="wrap">
     <h2>Three things to check out</h2>
@@ -124,6 +170,22 @@
     { big: '43%+', label: 'Of banking systems still run on COBOL', source: 'Reuters, cited industry-wide' },
   ]);
   document.getElementById('incidentChart').innerHTML = renderIncidentChart();
+
+  // Live-rendered showcase, built from the exact same sample data and
+  // rendering code as sample.html — not a static image. Each piece is
+  // independent so a failure in one (e.g. mermaid CDN blocked) doesn't
+  // take out the others.
+  (async () => {
+    try {
+      const graphSrc = buildMermaidSource(SAMPLE_DATA.dependency_graph, Object.fromEntries(SAMPLE_DATA.modules.map(m => [m.module, m.confidence])));
+      await renderZoomableGraph(document.getElementById('homeGraph'), graphSrc, 'Illustrative sample dependency graph');
+    } catch (e) { console.error('homeGraph render failed', e); }
+  })();
+  try {
+    document.getElementById('homeExecSummary').innerHTML = renderExecutiveSummary(SAMPLE_DATA);
+    const riskiest = SAMPLE_DATA.modules.slice().sort((a, b) => a.confidence - b.confidence)[0];
+    document.getElementById('homeModuleCard').innerHTML = renderModuleCard(riskiest, 0);
+  } catch (e) { console.error('home summary/module render failed', e); }
 </script>
 <script defer src="/_vercel/insights/script.js"></script>
 </body>
