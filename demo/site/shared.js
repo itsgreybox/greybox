@@ -173,7 +173,7 @@ function renderStatCards(stats) {
   return `<div style="display:grid; grid-template-columns:repeat(auto-fit,minmax(180px,1fr)); gap:14px; margin-bottom:8px;">
     ${stats.map(s => `
       <div class="graph-box" style="text-align:center; padding:22px 14px;">
-        <div style="font-family:'Archivo',sans-serif; font-size:28px; font-weight:700; color:var(--cyan); line-height:1.2;">${s.big}</div>
+        <div style="font-family:'Inter',sans-serif; font-size:28px; font-weight:700; color:var(--cyan); line-height:1.2;">${s.big}</div>
         <div style="font-size:12.5px; color:var(--text); margin-top:6px; line-height:1.4;">${s.label}</div>
         <div style="font-family:'IBM Plex Mono',monospace; font-size:10.5px; color:var(--muted); margin-top:8px;">${s.source}</div>
       </div>`).join('')}
@@ -215,7 +215,7 @@ function renderFindingsChart(data) {
   });
 
   const total = data.modules.length || 1;
-  const colors = { flagged_comment: '#9A5B00', silent_failure: '#D6204F', undocumented_constants: '#1F4BD1', clean: '#12794A' };
+  const colors = { flagged_comment: '#9A5B00', silent_failure: '#D13B4A', undocumented_constants: '#1F4BD1', clean: '#12794A' };
   const labels = { flagged_comment: 'Flagged risky comments', silent_failure: 'Silent failure handling', undocumented_constants: 'Undocumented constants', clean: 'No red flags found' };
 
   let cumulative = 0;
@@ -246,7 +246,7 @@ function renderFindingsChart(data) {
     <div class="graph-box" style="display:flex; gap:28px; align-items:center; flex-wrap:wrap;">
       <svg width="140" height="140" viewBox="0 0 140 140">${segments}
         <circle cx="${CX}" cy="${CY}" r="${R - STROKE / 2 - 2}" fill="var(--surface-2)" />
-        <text x="${CX}" y="${CY - 4}" text-anchor="middle" fill="var(--text)" font-size="20" font-weight="600" font-family="Archivo">${total}</text>
+        <text x="${CX}" y="${CY - 4}" text-anchor="middle" fill="var(--text)" font-size="20" font-weight="600" font-family="Inter">${total}</text>
         <text x="${CX}" y="${CY + 14}" text-anchor="middle" fill="var(--muted)" font-size="10" font-family="IBM Plex Mono">files</text>
       </svg>
       <div>
@@ -651,16 +651,16 @@ function renderExecutiveSummary(data) {
     <p style="font-size:14.5px; margin:0 0 8px;">${verdict}</p>
     ${keyFactsHtml}
     <div style="display:flex; gap:10px; flex-wrap:wrap;">
-      <div onclick="filterModulesByRisk('high')" style="cursor:pointer; flex:1; min-width:140px; background:rgba(214,32,79,0.08); border-left:3px solid #D6204F; border-radius:0 8px 8px 0; padding:12px 14px; transition:background 0.15s ease;" onmouseover="this.style.background='rgba(214,32,79,0.16)'" onmouseout="this.style.background='rgba(214,32,79,0.08)'">
-        <div style="font-family:'Archivo', sans-serif; font-size:22px; font-weight:700; color:#D6204F;">${high}</div>
+      <div onclick="filterModulesByRisk('high')" style="cursor:pointer; flex:1; min-width:140px; background:rgba(209,59,74,0.08); border-left:3px solid #D13B4A; border-radius:0 8px 8px 0; padding:12px 14px; transition:background 0.15s ease;" onmouseover="this.style.background='rgba(209,59,74,0.16)'" onmouseout="this.style.background='rgba(209,59,74,0.08)'">
+        <div style="font-family:'Inter', sans-serif; font-size:22px; font-weight:700; color:#D13B4A;">${high}</div>
         <div style="font-size:12.5px; color:var(--muted);">High risk — handle with care ${high ? '→' : ''}</div>
       </div>
       <div onclick="filterModulesByRisk('moderate')" style="cursor:pointer; flex:1; min-width:140px; background:var(--amber-dim); border-left:3px solid var(--amber); border-radius:0 8px 8px 0; padding:12px 14px; transition:background 0.15s ease;" onmouseover="this.style.background='rgba(240,166,58,0.22)'" onmouseout="this.style.background='var(--amber-dim)'">
-        <div style="font-family:'Archivo', sans-serif; font-size:22px; font-weight:700; color:var(--amber);">${moderate}</div>
+        <div style="font-family:'Inter', sans-serif; font-size:22px; font-weight:700; color:var(--amber);">${moderate}</div>
         <div style="font-size:12.5px; color:var(--muted);">Moderate risk ${moderate ? '→' : ''}</div>
       </div>
       <div onclick="filterModulesByRisk('low')" style="cursor:pointer; flex:1; min-width:140px; background:rgba(111,224,160,0.08); border-left:3px solid var(--good); border-radius:0 8px 8px 0; padding:12px 14px; transition:background 0.15s ease;" onmouseover="this.style.background='rgba(111,224,160,0.16)'" onmouseout="this.style.background='rgba(111,224,160,0.08)'">
-        <div style="font-family:'Archivo', sans-serif; font-size:22px; font-weight:700; color:var(--good);">${low}</div>
+        <div style="font-family:'Inter', sans-serif; font-size:22px; font-weight:700; color:var(--good);">${low}</div>
         <div style="font-size:12.5px; color:var(--muted);">Low risk — safe to leave alone ${low ? '→' : ''}</div>
       </div>
     </div>
@@ -938,7 +938,7 @@ function openTechnicalRoadmapPDF() {
 
 function riskBadge(confidence) {
   const level = confidence >= 70 ? 'Low' : confidence >= 45 ? 'Moderate' : 'High';
-  const color = confidence >= 70 ? 'var(--good)' : confidence >= 45 ? 'var(--amber)' : '#D6204F';
+  const color = confidence >= 70 ? 'var(--good)' : confidence >= 45 ? 'var(--amber)' : '#D13B4A';
   return `<span style="font-family:'IBM Plex Mono',monospace; font-size:10.5px; font-weight:600; color:${color}; border:1px solid ${color}; border-radius:10px; padding:2px 8px; margin-left:8px;">${level} Risk</span>`;
 }
 
@@ -1064,7 +1064,6 @@ function _toggleModuleDetail(btn, id) {
 
 function renderNavHtml(active) {
   const links = [
-    ['index.html', 'Home'],
     ['case-studies.html', 'Case studies'],
     ['why.html', 'Why greybox'],
     ['pricing.html', 'Pricing'],
@@ -1075,9 +1074,10 @@ function renderNavHtml(active) {
     return `<a class="${cls}" href="${href}">${label}</a>`;
   }).join('');
   const liveCls = active === 'live.html' ? 'nav-cta active' : 'nav-cta';
+  const sampleCls = active === 'sample.html' ? 'nav-ghost active' : 'nav-ghost';
   return `<nav class="topnav"><div class="topnav-inner">
-    <a class="topnav-brand" href="index.html"><img src="assets/favicon.png" alt="" width="30" height="30" style="border-radius:6px;">greybox</a>
-    <div class="topnav-links">${linkHtml}<a class="${liveCls}" href="live.html">Try it live →</a></div>
+    <a class="topnav-brand" href="index.html"><img src="assets/favicon.png" alt="" width="30" height="30" style="border-radius:7px;">greybox</a>
+    <div class="topnav-links">${linkHtml}<a class="${sampleCls}" href="sample.html">Sample report</a><a class="${liveCls}" href="live.html">Try it live</a></div>
   </div></nav>`;
 }
 
