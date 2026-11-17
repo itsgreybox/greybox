@@ -173,7 +173,7 @@ function renderStatCards(stats) {
   return `<div style="display:grid; grid-template-columns:repeat(auto-fit,minmax(180px,1fr)); gap:14px; margin-bottom:8px;">
     ${stats.map(s => `
       <div class="graph-box" style="text-align:center; padding:22px 14px;">
-        <div style="font-family:'Space Grotesk',sans-serif; font-size:28px; font-weight:700; color:var(--cyan); line-height:1.2;">${s.big}</div>
+        <div style="font-family:'Archivo',sans-serif; font-size:28px; font-weight:700; color:var(--cyan); line-height:1.2;">${s.big}</div>
         <div style="font-size:12.5px; color:var(--text); margin-top:6px; line-height:1.4;">${s.label}</div>
         <div style="font-family:'IBM Plex Mono',monospace; font-size:10.5px; color:var(--muted); margin-top:8px;">${s.source}</div>
       </div>`).join('')}
@@ -183,10 +183,10 @@ function renderStatCards(stats) {
 // approx USD equivalents noted explicitly - for visual comparison only, not exact
 function renderIncidentChart() {
   const incidents = [
-    { name: 'Queensland Health (AU$1.25B)', usd: 820, year: '2010s', detail: 'AU$6M payroll upgrade became a AU$1.25B disaster' },
-    { name: 'Southwest Airlines', usd: 800, year: '2022', detail: '16,700 flights cancelled - 1990s scheduling system couldn\'t handle a winter storm' },
-    { name: 'Knight Capital', usd: 460, year: '2012', detail: 'Dormant legacy code accidentally triggered - lost in 45 minutes, nearly bankrupted the firm' },
-    { name: 'TSB Bank (£330M)', usd: 415, year: '2018', detail: 'Botched core banking migration - cost the CEO his job' },
+    { name: 'Queensland Health (~AU$1.2B)', usd: 790, year: '2010', detail: 'AU$98M payroll replacement; estimated ~AU$1.2B over eight years to repair, maintain and run' },
+    { name: 'Southwest Airlines', usd: 800, year: '2022', detail: '16,700 flights cancelled; crew rescheduling software couldn\'t keep up after a winter storm' },
+    { name: 'Knight Capital', usd: 460, year: '2012', detail: 'Obsolete code left in the codebase was triggered by a deployment gap - lost in about 45 minutes' },
+    { name: 'TSB Bank (£330M)', usd: 415, year: '2018', detail: 'Core banking migration; TSB reported £330M in post-migration costs' },
   ];
   const max = Math.max(...incidents.map(i => i.usd));
   const rows = incidents.map(i => {
@@ -196,8 +196,8 @@ function renderIncidentChart() {
         <span style="color:var(--text); font-weight:500;">${i.name}</span>
         <span style="color:var(--muted); font-family:'IBM Plex Mono',monospace;">~$${i.usd}M · ${i.year}</span>
       </div>
-      <div style="background:var(--surface-2); border-radius:4px; height:10px; overflow:hidden;">
-        <div style="background:var(--amber); height:100%; width:${pct}%; border-radius:4px;"></div>
+      <div style="background:var(--surface-2); border-radius:2px; height:10px; overflow:hidden;">
+        <div style="background:var(--risk); height:100%; width:${pct}%; border-radius:2px;"></div>
       </div>
       <div style="font-size:12px; color:var(--muted); margin-top:5px;">${i.detail}</div>
     </div>`;
@@ -215,7 +215,7 @@ function renderFindingsChart(data) {
   });
 
   const total = data.modules.length || 1;
-  const colors = { flagged_comment: '#F0A63A', silent_failure: '#F3766B', undocumented_constants: '#4FD1E8', clean: '#7FD98A' };
+  const colors = { flagged_comment: '#9A5B00', silent_failure: '#D6204F', undocumented_constants: '#1F4BD1', clean: '#12794A' };
   const labels = { flagged_comment: 'Flagged risky comments', silent_failure: 'Silent failure handling', undocumented_constants: 'Undocumented constants', clean: 'No red flags found' };
 
   let cumulative = 0;
@@ -246,7 +246,7 @@ function renderFindingsChart(data) {
     <div class="graph-box" style="display:flex; gap:28px; align-items:center; flex-wrap:wrap;">
       <svg width="140" height="140" viewBox="0 0 140 140">${segments}
         <circle cx="${CX}" cy="${CY}" r="${R - STROKE / 2 - 2}" fill="var(--surface-2)" />
-        <text x="${CX}" y="${CY - 4}" text-anchor="middle" fill="var(--text)" font-size="20" font-weight="600" font-family="Space Grotesk">${total}</text>
+        <text x="${CX}" y="${CY - 4}" text-anchor="middle" fill="var(--text)" font-size="20" font-weight="600" font-family="Archivo">${total}</text>
         <text x="${CX}" y="${CY + 14}" text-anchor="middle" fill="var(--muted)" font-size="10" font-family="IBM Plex Mono">files</text>
       </svg>
       <div>
@@ -279,10 +279,10 @@ function openGraphFullSize(frameEl) {
   w.document.write(`<!DOCTYPE html><html><head><title>${title}</title>
     <meta charset="UTF-8">
     <style>
-      body { margin:0; background:#0B1220; height:100vh; overflow:hidden; cursor:grab; }
+      body { margin:0; background:#E3E4E0; height:100vh; overflow:hidden; cursor:grab; }
       #inner { display:inline-block; transform-origin:0 0; }
       .toolbar { position:fixed; bottom:16px; right:16px; display:flex; gap:8px; z-index:10; }
-      .toolbar button { font-family:monospace; font-size:14px; background:#17233B; border:1px solid #26334D; color:#E5EAF2; padding:8px 14px; border-radius:4px; cursor:pointer; }
+      .toolbar button { font-family:monospace; font-size:14px; background:#F3F3F0; border:1px solid #BDBFB8; color:#1C1F22; padding:8px 14px; border-radius:4px; cursor:pointer; }
     </style>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/mermaid/10.9.0/mermaid.min.js"></script>
     </head><body>
@@ -293,7 +293,7 @@ function openGraphFullSize(frameEl) {
       <button onclick="reset()">Reset</button>
     </div>
     <script>
-      mermaid.initialize({ theme: 'dark' });
+      mermaid.initialize({ theme: 'neutral' });
       let zoom = 1, panX = 40, panY = 40;
       function apply() { document.getElementById('inner').style.transform = 'translate('+panX+'px,'+panY+'px) scale('+zoom+')'; }
       function z(f) { zoom = Math.min(Math.max(zoom * f, 0.15), 8); apply(); }
@@ -651,16 +651,16 @@ function renderExecutiveSummary(data) {
     <p style="font-size:14.5px; margin:0 0 8px;">${verdict}</p>
     ${keyFactsHtml}
     <div style="display:flex; gap:10px; flex-wrap:wrap;">
-      <div onclick="filterModulesByRisk('high')" style="cursor:pointer; flex:1; min-width:140px; background:rgba(243,118,107,0.08); border-left:3px solid #F3766B; border-radius:0 8px 8px 0; padding:12px 14px; transition:background 0.15s ease;" onmouseover="this.style.background='rgba(243,118,107,0.16)'" onmouseout="this.style.background='rgba(243,118,107,0.08)'">
-        <div style="font-family:'Space Grotesk', sans-serif; font-size:22px; font-weight:700; color:#F3766B;">${high}</div>
+      <div onclick="filterModulesByRisk('high')" style="cursor:pointer; flex:1; min-width:140px; background:rgba(214,32,79,0.08); border-left:3px solid #D6204F; border-radius:0 8px 8px 0; padding:12px 14px; transition:background 0.15s ease;" onmouseover="this.style.background='rgba(214,32,79,0.16)'" onmouseout="this.style.background='rgba(214,32,79,0.08)'">
+        <div style="font-family:'Archivo', sans-serif; font-size:22px; font-weight:700; color:#D6204F;">${high}</div>
         <div style="font-size:12.5px; color:var(--muted);">High risk — handle with care ${high ? '→' : ''}</div>
       </div>
       <div onclick="filterModulesByRisk('moderate')" style="cursor:pointer; flex:1; min-width:140px; background:var(--amber-dim); border-left:3px solid var(--amber); border-radius:0 8px 8px 0; padding:12px 14px; transition:background 0.15s ease;" onmouseover="this.style.background='rgba(240,166,58,0.22)'" onmouseout="this.style.background='var(--amber-dim)'">
-        <div style="font-family:'Space Grotesk', sans-serif; font-size:22px; font-weight:700; color:var(--amber);">${moderate}</div>
+        <div style="font-family:'Archivo', sans-serif; font-size:22px; font-weight:700; color:var(--amber);">${moderate}</div>
         <div style="font-size:12.5px; color:var(--muted);">Moderate risk ${moderate ? '→' : ''}</div>
       </div>
       <div onclick="filterModulesByRisk('low')" style="cursor:pointer; flex:1; min-width:140px; background:rgba(111,224,160,0.08); border-left:3px solid var(--good); border-radius:0 8px 8px 0; padding:12px 14px; transition:background 0.15s ease;" onmouseover="this.style.background='rgba(111,224,160,0.16)'" onmouseout="this.style.background='rgba(111,224,160,0.08)'">
-        <div style="font-family:'Space Grotesk', sans-serif; font-size:22px; font-weight:700; color:var(--good);">${low}</div>
+        <div style="font-family:'Archivo', sans-serif; font-size:22px; font-weight:700; color:var(--good);">${low}</div>
         <div style="font-size:12.5px; color:var(--muted);">Low risk — safe to leave alone ${low ? '→' : ''}</div>
       </div>
     </div>
@@ -938,7 +938,7 @@ function openTechnicalRoadmapPDF() {
 
 function riskBadge(confidence) {
   const level = confidence >= 70 ? 'Low' : confidence >= 45 ? 'Moderate' : 'High';
-  const color = confidence >= 70 ? 'var(--good)' : confidence >= 45 ? 'var(--amber)' : '#F3766B';
+  const color = confidence >= 70 ? 'var(--good)' : confidence >= 45 ? 'var(--amber)' : '#D6204F';
   return `<span style="font-family:'IBM Plex Mono',monospace; font-size:10.5px; font-weight:600; color:${color}; border:1px solid ${color}; border-radius:10px; padding:2px 8px; margin-left:8px;">${level} Risk</span>`;
 }
 
@@ -1065,6 +1065,7 @@ function _toggleModuleDetail(btn, id) {
 function renderNavHtml(active) {
   const links = [
     ['index.html', 'Home'],
+    ['case-studies.html', 'Case studies'],
     ['why.html', 'Why greybox'],
     ['pricing.html', 'Pricing'],
     ['contact.html', 'Contact'],

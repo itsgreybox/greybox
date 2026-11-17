@@ -1,0 +1,109 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Case studies: public legacy-system failures | greybox</title>
+<meta name="description" content="Four public legacy-system failures, with sources, and an honest note on what a code scan like greybox would and would not have caught.">
+<link rel="icon" type="image/png" href="assets/favicon.png">
+<link rel="apple-touch-icon" href="assets/apple-touch-icon.png">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Archivo:wdth,wght@62..125,100..900&family=Hanken+Grotesk:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="style.css">
+<link rel="stylesheet" href="revamp.css">
+</head>
+<body>
+
+<div id="nav-placeholder"></div>
+
+<header class="cs-head">
+  <div class="wrap-wide">
+    <h1>What it cost when nobody looked</h1>
+    <p class="rv-lede" style="margin-bottom:20px;">Four public failures involving old or replaced systems. Open one to see what happened, then what greybox reads that relates, and what it would have missed.</p>
+    <div class="cs-honesty">These are public incidents, not greybox customer stories. greybox was not used on any of them, and we are not claiming it would have prevented them. Facts come from the linked sources; the "greybox angle" is our own reading.</div>
+  </div>
+</header>
+
+<main class="wrap-wide" style="padding-bottom:72px;">
+  <div class="cs-filters" role="group" aria-label="Filter case studies">
+    <span>Show</span>
+    <span id="chipHolder" style="display:contents;"></span>
+    <span class="cs-count" id="csCount" aria-live="polite"></span>
+  </div>
+  <div id="cases"></div>
+</main>
+
+<section class="rv-band">
+  <div class="wrap-wide">
+    <h2>Know what is down there before you start.</h2>
+    <p>The sample report shows what greybox hands you for every file: a score, the flags behind it, and a next step.</p>
+    <div class="cta-row">
+      <a class="cta" href="sample.html">See the sample report</a>
+      <a class="cta ghost" href="live.html">Scan a public repo</a>
+    </div>
+  </div>
+</section>
+<div class="wrap-wide rv-foot">&copy; 2026 greybox. Have a public case we should add or a fact we got wrong? <a href="contact.html" style="color:inherit; font-weight:700;">Tell us</a>.</div>
+
+<script src="case-data.js"></script>
+<script src="shared.js"></script>
+<script>
+document.getElementById('nav-placeholder').outerHTML = renderNavHtml('case-studies.html');
+const esc = s => s.replace(/&/g, '&amp;').replace(/</g, '&lt;');
+const holder = document.getElementById('cases');
+holder.innerHTML = CASE_STUDIES.map(c => `
+  <article class="case" id="${c.id}" data-sector="${c.sector}" data-failure="${c.failure}">
+    <button class="case-top" type="button" aria-expanded="false" aria-controls="${c.id}-body">
+      <span>
+        <div class="meta">${c.sector}, ${c.region}, ${c.when}. Type: ${c.failure}</div>
+        <h3>${c.name}</h3>
+        <p class="hl">${c.headline}</p>
+      </span>
+      <span><div class="cost">${c.cost}</div><span class="toggle">Show details</span></span>
+    </button>
+    <div class="case-body" id="${c.id}-body">
+      <div>
+        <h4>What happened</h4>
+        <ul>${c.facts.map(f => `<li>${esc(f)}</li>`).join('')}</ul>
+        <div class="src"><h4>Sources</h4>${c.sources.map(s => `<div><a href="${s.url}" target="_blank" rel="noopener noreferrer">${esc(s.title)}</a></div>`).join('')}</div>
+      </div>
+      <div>
+        <h4>The greybox angle</h4>
+        <p class="can">${esc(c.greyboxAngle)}</p>
+        <h4>What greybox would have missed</h4>
+        <p class="cant">${esc(c.cannotCatch)}</p>
+      </div>
+    </div>
+  </article>`).join('');
+
+function setOpen(card, open) {
+  card.classList.toggle('open', open);
+  const b = card.querySelector('.case-top');
+  b.setAttribute('aria-expanded', open); b.querySelector('.toggle').textContent = open ? 'Hide details' : 'Show details';
+}
+holder.querySelectorAll('.case').forEach(card => card.querySelector('.case-top').onclick = () => setOpen(card, !card.classList.contains('open')));
+
+/* filters: by type of failure */
+const types = ['All', ...new Set(CASE_STUDIES.map(c => c.failure))];
+const chipHolder = document.getElementById('chipHolder');
+types.forEach((t, i) => {
+  const b = document.createElement('button'); b.type = 'button'; b.className = 'filter-btn' + (i === 0 ? ' active' : ''); b.textContent = t; b.setAttribute('aria-pressed', i === 0);
+  b.onclick = () => {
+    chipHolder.querySelectorAll('button').forEach(x => { x.classList.toggle('active', x === b); x.setAttribute('aria-pressed', x === b); });
+    let n = 0; holder.querySelectorAll('.case').forEach(c => { const m = t === 'All' || c.dataset.failure === t; c.style.display = m ? '' : 'none'; if (m) n++; });
+    document.getElementById('csCount').textContent = `${n} of ${CASE_STUDIES.length} shown`;
+  };
+  chipHolder.appendChild(b);
+});
+document.getElementById('csCount').textContent = `${CASE_STUDIES.length} of ${CASE_STUDIES.length} shown`;
+
+/* open the case named in the URL, otherwise the first */
+function fromHash() {
+  const id = location.hash.slice(1), target = id && document.getElementById(id);
+  if (target && target.classList.contains('case')) { setOpen(target, true); target.scrollIntoView({ block: 'start' }); }
+}
+setOpen(holder.firstElementChild, true); fromHash(); window.addEventListener('hashchange', fromHash);
+</script>
+<script defer src="/_vercel/insights/script.js"></script>
+</body>
+</html>

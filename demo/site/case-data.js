@@ -1,0 +1,97 @@
+// Public incidents only. Every fact below was checked against the linked source
+// when this file was written. These are NOT greybox customer stories: greybox
+// was not used on any of these systems. "greyboxAngle" is our own reading of
+// which signals greybox looks at; "cannotCatch" says what it would have missed.
+const CASE_STUDIES = [
+  {
+    id: 'knight',
+    name: 'Knight Capital',
+    sector: 'Finance',
+    region: 'United States',
+    when: '1 Aug 2012',
+    failure: 'Dead code still live',
+    cost: '$460M lost',
+    headline: 'Code that had been obsolete since 2003 was still in the codebase.',
+    facts: [
+      'About $460 million lost in roughly 45 minutes after the NYSE opened, with servers executing about 4 million trades.',
+      'The Power Peg program had been obsolete since 2003 but stayed in the codebase.',
+      'A flag that once enabled Power Peg was reused for new functionality.',
+      'One of eight production servers was not updated and kept the old version.',
+      'Knight was fined a further $12 million for risk management violations.',
+    ],
+    greyboxAngle: 'Greybox lists modules that are not an entry point and that nothing else in the code reaches, with the note "worth checking if this is actually used anywhere, or safe to remove". Forgotten code like Power Peg is the kind of thing that list is for.',
+    cannotCatch: 'The failure needed a deployment gap on one server and a reused runtime flag. Greybox reads source files; it cannot see which servers run which build or what flags are set in production.',
+    sources: [
+      { title: 'SmartBear: Losing $460m in 45 minutes', url: 'https://smartbear.com/blog/bug-day-460m-loss/' },
+    ],
+  },
+  {
+    id: 'tsb',
+    name: 'TSB Bank',
+    sector: 'Banking',
+    region: 'United Kingdom',
+    when: 'Apr 2018',
+    failure: 'Migration',
+    cost: '£330M in costs',
+    headline: 'A single-weekend migration of five million customer records.',
+    facts: [
+      'TSB aimed to migrate five million customer records in one weekend, a "big bang" approach.',
+      'Slaughter and May\'s independent review (published 19 Nov 2019) found the new platform was not robustly tested and that the board did not fully understand its scope and complexity.',
+      'Design, build and testing involved over 70 suppliers and more than 1,400 people.',
+      'TSB reported £330 million in post-migration costs against 2018 results, and £125 million in customer compensation.',
+      'Almost two million customers were locked out of online banking. TSB disputes parts of the review and points to a data-centre configuration error.',
+    ],
+    greyboxAngle: 'A migration plan starts from what the old system does. Greybox is built for that first look: a dependency graph and a per-file confidence score, so the files nobody understands are known before the cutover date is set.',
+    cannotCatch: 'The review\'s main findings were about governance, supplier oversight and testing. Greybox does none of those. It also does not test a new platform.',
+    sources: [
+      { title: 'Slaughter and May: Independent Review of TSB\'s 2018 migration', url: 'https://slaughterandmay.com/news/slaughter-and-may-s-independent-review-of-tsb-s-2018-migration-to-a-new-it-platform' },
+      { title: 'ITPro: TSB\'s IT disaster pinned on "big bang" approach', url: 'https://www.itpro.com/business-strategy/digital-transformation/354155/tsbs-it-disaster-pinned-on-big-bang-approach-to' },
+      { title: 'FStech: TSB reports £330m in IT crisis costs', url: 'https://www.fstech.co.uk/fst/TSB_Counts_Post_Migration_Costs.php' },
+    ],
+  },
+  {
+    id: 'southwest',
+    name: 'Southwest Airlines',
+    sector: 'Aviation',
+    region: 'United States',
+    when: 'Dec 2022',
+    failure: 'Hidden limits',
+    cost: '~$800M lost revenue',
+    headline: 'Crew scheduling software could not keep up with a winter storm.',
+    facts: [
+      'Southwest cancelled 16,700 flights during the December 2022 holiday meltdown, and two-thirds of its flights from 27 to 29 December.',
+      'The crew scheduling application, SkySolver (GE Digital), could not handle the volume of crew reassignments, according to Southwest\'s COO.',
+      'Crews had no mobile app and had to call in to report locations; the automated assignment system needed that data to work.',
+      'Southwest reported about $800 million in lost revenue.',
+    ],
+    greyboxAngle: 'Greybox flags undocumented constants and branch-heavy logic, which is where hard-coded limits and special cases tend to sit in old scheduling code.',
+    cannotCatch: 'Whether a system can handle a storm\'s worth of reassignments is a load question. Greybox reads code structure and does not run it, so it cannot tell you where the capacity ceiling is.',
+    sources: [
+      { title: 'CIO Dive: 3 lessons from Southwest\'s technology failure', url: 'https://www.ciodive.com/news/3-lessons-from-southwest-airlines-technology-failure/641803/' },
+      { title: 'AviationPros: Senate calls on Southwest operations chief', url: 'https://www.aviationpros.com/aircraft/commercial-airline/news/21294760/senate-calls-on-southwest-airlines-operations-chief-to-answer-for-holiday-meltdown' },
+    ],
+  },
+  {
+    id: 'qld',
+    name: 'Queensland Health payroll',
+    sector: 'Public sector',
+    region: 'Australia',
+    when: 'Mar 2010',
+    failure: 'Replacing legacy',
+    cost: '~AU$1.2B over 8 yrs',
+    headline: 'Replacing a payroll system that had fallen out of vendor support.',
+    facts: [
+      'The new system replaced LATTICE, which had fallen out of vendor support by 1 July 2008. IBM\'s contract, signed 5 December 2007, was AU$98 million.',
+      'It went live on 14 March 2010. Almost 78,000 staff received inaccurate pay or no pay.',
+      'The estimated cost to repair, maintain and operate the system was about AU$1.2 billion over eight years.',
+      'The commission of inquiry (opened 13 December 2012) called it "a serious failure" and said it "may be the worst" failure in public administration in Australia.',
+      'Its first recommendation was forward planning for legacy systems so decisions are not rushed.',
+    ],
+    greyboxAngle: 'Forward planning for a legacy system starts with knowing what it contains. Greybox gives a ranked, file-by-file starting point, and a portfolio mode for many repositories, so scoping can begin before a vendor is chosen.',
+    cannotCatch: 'The inquiry examined specification, procurement, contract and project management. Those are decisions about people and contracts; a code scan does not touch them.',
+    sources: [
+      { title: 'GovTech Review: Qld Health payroll report slams worst-ever IT project', url: 'https://www.govtechreview.com.au/content/gov-tech/article/qld-health-payroll-report-slams-worst-ever-it-project-1412972975' },
+      { title: 'Wikipedia: 2010 Queensland Health payroll system implementation', url: 'https://en.wikipedia.org/wiki/2010_Queensland_Health_payroll_system_implementation' },
+    ],
+  },
+];

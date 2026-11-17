@@ -119,7 +119,7 @@ function confidenceScore(facts) {
   risk += Math.min(facts.magic_numbers.length * 4, 30);
   risk += facts.has_bare_except ? 15 : 0;
   risk += facts.todo_comments.length ? -5 : 10;
-  return Math.max(0, 100 - risk);
+  return Math.max(0, Math.min(100, 100 - risk)); // clamp: the -5 for a flagged comment could otherwise give 105
 }
 
 function suggestNextSteps(facts) {

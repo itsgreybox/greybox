@@ -3,189 +3,344 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>greybox — see into the black box</title>
+<title>greybox: locate before you dig</title>
+<meta name="description" content="greybox maps what's buried in an old codebase: what calls what, what's fragile, and what nobody wrote down, before anyone changes it.">
 <link rel="icon" type="image/png" href="assets/favicon.png">
 <link rel="apple-touch-icon" href="assets/apple-touch-icon.png">
 <link rel="preconnect" href="https://fonts.googleapis.com">
-<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;600;700&family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Archivo:wdth,wght@62..125,100..900&family=Hanken+Grotesk:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="style.css">
-<script src="https://cdnjs.cloudflare.com/ajax/libs/mermaid/10.9.0/mermaid.min.js"></script>
+<link rel="stylesheet" href="revamp.css">
 </head>
 <body>
 
 <div id="nav-placeholder"></div>
 
-<!-- HERO -->
-<div class="hero" style="overflow:hidden;">
-  <div class="wrap">
-    <div class="hero-grid">
-      <div>
-        <div class="eyebrow">greybox — legacy assessment tool</div>
-        <h1>Before you spend $500K figuring out what an old system does —<br><span>see into the black box first.</span></h1>
-        <p class="sub">Point greybox at an undocumented codebase. In minutes, get a real dependency graph, risk flags, and a concrete "what to do next" for every risky file — the same first-look work consultants charge $15K–$180K for.</p>
+<!-- HERO: the probe -->
+<header class="rv-hero">
+  <div class="wrap-wide">
+    <div class="rv-hero-copy">
+      <h1>Locate before you dig.</h1>
+      <div class="rv-hero-side">
+        <p>Old code is like buried pipework. greybox maps what's down there (what calls what, what's fragile, what nobody wrote down) before anyone starts digging.</p>
         <div class="cta-row">
-          <a class="cta ghost" href="sample.html" style="position:relative;">See a sample report<span style="position:absolute; top:-11px; right:-10px; background:var(--good); color:#06131A; font-size:10px; font-weight:700; padding:2px 8px; border-radius:999px; letter-spacing:0.03em;">START HERE</span></a>
-          <a class="cta filled" href="live.html">Scan a real GitHub repo →</a>
+          <a class="cta filled" href="sample.html">See the sample report</a>
+          <a class="cta ghost" href="live.html">Scan a public GitHub repo</a>
         </div>
-        <p style="font-size:12.5px; color:var(--muted); margin-top:10px;">New here? Start with the sample — no setup, no repo needed, see the full report format in 10 seconds.</p>
-      </div>
-      <div style="text-align:right;">
-        <img src="assets/hero-icon.png" alt="" style="width:100%; max-width:360px;">
-        <div style="font-family:'IBM Plex Mono', monospace; font-size:12.5px; color:var(--muted); margin-top:12px;">greybox sees into the black box,<br>so you don't have to guess.</div>
+        <p class="rv-fine">Free. No signup for the sample, the live scan, or the CLI.</p>
       </div>
     </div>
   </div>
-</div>
 
-<!-- SHOWCASE 1: real dependency graph, live-rendered from the actual sample data -->
-<section class="tight">
-  <div class="wrap">
-    <h2>A real dependency graph, not a guess from one pasted file</h2>
-    <p class="section-note">This is the actual rendering code from the sample report below, running live on this page right now — not a screenshot, not a mockup. <a href="sample.html" style="color:var(--cyan);">Same data in the full report →</a></p>
-    <div class="graph-box">
-      <div style="font-family:'IBM Plex Mono',monospace; font-size:11.5px; color:var(--muted); text-transform:uppercase; letter-spacing:0.04em; margin-bottom:8px;">Illustrative sample — color-coded by real confidence score</div>
-      <div class="graph-frame" id="homeGraph"></div>
-      <div class="graph-toolbar">
-        <button onclick="graphZoomOut(document.getElementById('homeGraph'))">−</button>
-        <button onclick="graphZoomIn(document.getElementById('homeGraph'))">+</button>
-        <button onclick="graphReset(document.getElementById('homeGraph'))">Reset</button>
-        <a href="javascript:void(0)" onclick="openGraphFullSize(document.getElementById('homeGraph'))">Open full-size ↗</a>
+  <section class="probe" aria-label="Interactive probe of a sample system">
+    <div class="probe-bar">
+      <span>Move across the slab to probe the system underneath. This is the 10-file illustrative sample, not a real repo.</span>
+      <button id="slabToggle" type="button" aria-pressed="false">Remove slab</button>
+    </div>
+    <svg id="probeSvg" viewBox="0 0 1000 410" role="img" aria-label="Dependency graph of the sample system, covered by a concrete slab that a pointer can see through. Use the module buttons below to read each file.">
+      <defs>
+        <radialGradient id="holeGrad"><stop offset="0" stop-color="#000"/><stop offset="0.68" stop-color="#000"/><stop offset="1" stop-color="#fff"/></radialGradient>
+        <mask id="slabMask" maskUnits="userSpaceOnUse" x="0" y="0" width="1000" height="410">
+          <rect width="1000" height="410" fill="#fff"/>
+          <circle id="hole" cx="-300" cy="-300" r="118" fill="url(#holeGrad)"/>
+        </mask>
+        <pattern id="speckle" width="34" height="34" patternUnits="userSpaceOnUse">
+          <circle cx="5" cy="7" r="1.1" fill="#9a9c95"/><circle cx="21" cy="3" r="0.8" fill="#b4b6af"/><circle cx="28" cy="19" r="1.3" fill="#a3a59e"/>
+          <circle cx="11" cy="26" r="0.9" fill="#b4b6af"/><circle cx="31" cy="31" r="0.7" fill="#9a9c95"/>
+        </pattern>
+      </defs>
+
+      <!-- ground -->
+      <rect width="1000" height="410" fill="#1C1F22"/>
+      <g stroke="#2b3035" stroke-width="1"><line x1="0" y1="95" x2="1000" y2="95"/><line x1="0" y1="165" x2="1000" y2="165"/><line x1="0" y1="245" x2="1000" y2="245"/><line x1="0" y1="330" x2="1000" y2="330"/></g>
+      <g id="edges" fill="none" stroke="#8b94a0" stroke-width="2.5" stroke-linecap="round"></g>
+      <g id="nodes"></g>
+
+      <!-- slab -->
+      <g id="slab" mask="url(#slabMask)">
+        <rect width="1000" height="410" fill="#D4D5D0"/>
+        <rect width="1000" height="410" fill="url(#speckle)"/>
+        <g stroke="#a9aba4" stroke-width="2"><line x1="250" y1="0" x2="250" y2="410"/><line x1="500" y1="0" x2="500" y2="410"/><line x1="750" y1="0" x2="750" y2="410"/><line x1="0" y1="205" x2="1000" y2="205"/></g>
+        <path d="M612 205 l-14 38 l16 12 l-10 40" fill="none" stroke="#a9aba4" stroke-width="1.6"/>
+        <!-- locate-paint marks -->
+        <g fill="none" stroke-linecap="round" stroke-linejoin="round" stroke-width="5">
+          <path d="M96 90 l60 -18 l-6 34 l54 -16" stroke="#F5C400"/>
+          <path d="M300 330 l40 -40 M300 290 l40 40" stroke="#E8366A"/>
+          <path d="M820 80 q22 -26 44 0 t44 0" stroke="#F5C400"/>
+          <path d="M880 340 h-70 m16 -16 l-16 16 l16 16" stroke="#E8366A"/>
+          <path d="M440 120 h60" stroke="#2F6BFF"/>
+        </g>
+      </g>
+      <circle id="ring" cx="-300" cy="-300" r="118" fill="none" stroke="#F5C400" stroke-width="3" stroke-dasharray="7 7"/>
+    </svg>
+
+    <div class="probe-notes">
+      <div class="probe-info" id="probeInfo" aria-live="polite">
+        <h3>Nothing probed yet</h3>
+        <div class="path">Move over a pipe, or pick a file on the right.</div>
+      </div>
+      <div class="probe-chips" id="probeChips"><p>Or read the files directly, riskiest first:</p></div>
+    </div>
+  </section>
+</header>
+
+<!-- SCORE TUNER -->
+<section class="rv-sec">
+  <div class="wrap-wide">
+    <div class="rv-split">
+      <div>
+        <h2>The confidence score is arithmetic. Try it.</h2>
+        <p class="rv-lede">Every file gets a score out of 100 from four structural signals, worked out before any AI is involved. These sliders use the same formula as the CLI's <code>confidence_score</code> in <code>analyzer.py</code>.</p>
+        <p class="section-note">A low score does not mean the file is broken. It means a lot is hidden in it and not much was written down about why, so changing it carries more risk.</p>
+      </div>
+      <div class="tuner">
+        <div class="tuner-grid">
+          <div class="tuner-controls">
+            <div>
+              <label for="tBranch">Branches <span class="val" id="tBranchVal">3</span></label>
+              <input type="range" id="tBranch" min="0" max="12" value="3">
+              <span class="hint">if / else / loop paths counted in the file</span>
+            </div>
+            <div>
+              <label for="tConst">Undocumented constants <span class="val" id="tConstVal">2</span></label>
+              <input type="range" id="tConst" min="0" max="10" value="2">
+              <span class="hint">bare numbers like 1.0475 with no name</span>
+            </div>
+            <label class="toggle"><input type="checkbox" id="tBare"><span>Has a bare <code>except:</code><span class="hint">failures here would be silent</span></span></label>
+            <label class="toggle"><input type="checkbox" id="tTodo"><span>Has a flagged comment<span class="hint">TODO, FIXME, DO NOT CHANGE and similar</span></span></label>
+          </div>
+          <div class="tuner-out">
+            <div class="tuner-score" id="tScore" aria-live="polite">0<small>/100</small></div>
+            <div class="tuner-band" id="tBand">-</div>
+            <div class="meter"><i id="tMeter"></i></div>
+            <table class="tuner-table" id="tTable"></table>
+          </div>
+        </div>
+        <div class="tuner-foot">Odd rule, on purpose: a file with no flagged comments loses 10 points, and one with a flagged comment gains 5. A comment is a clue about why the code is the way it is.</div>
       </div>
     </div>
   </div>
 </section>
 
-<!-- SHOWCASE 2: real confidence score + real module finding -->
-<section style="border-bottom:none;">
-  <div class="wrap">
-    <h2>A confidence score that's arithmetic, not a vibe</h2>
-    <p class="section-note">Computed from real structural signals — branch complexity, undocumented constants, error handling — before any AI is involved. Here's one real module from the sample report, rendered live below.</p>
-    <div class="two-col">
-      <div id="homeExecSummary"></div>
-      <div id="homeModuleCard"></div>
+<!-- SCENARIOS -->
+<section class="rv-sec" style="background:var(--surface-2);">
+  <div class="wrap-wide">
+    <h2>Where it gets used</h2>
+    <p class="rv-lede">Not only for dead systems. Most legacy pain is code your team ships to every week, where nobody left fully understands why it works the way it does.</p>
+    <div class="tabs">
+      <div class="tablist" role="tablist" aria-label="Use cases" id="tablist"></div>
+      <div class="tabpanel" id="tabpanel" role="tabpanel" tabindex="0"></div>
     </div>
   </div>
 </section>
 
-<!-- YOUR CODE NEVER LEAVES -->
-<section class="tight" style="border-bottom:1px solid var(--line);">
-  <div class="wrap">
-    <h2>Your code never has to leave your network</h2>
-    <p class="section-note">The live scanner works on public repos only. Most real legacy code isn't public, and regulated companies (banks, healthcare) can't send code to a third-party SaaS at all — that's what the CLI is for.</p>
-    <div class="card-grid">
-      <div class="feature-card"><span class="icon">💻</span><b>Runs on your machine</b><p>The open-source CLI runs locally — private GitHub, GitLab, Bitbucket, or code that's never been in any hosted repo at all. Nothing is uploaded anywhere by default.</p></div>
-      <div class="feature-card"><span class="icon">🏦</span><b>Built for regulated industries</b><p>Banks, healthcare, government — run it in your own CI, your own cloud, your own on-prem environment. Your data stays inside your infrastructure, always.</p></div>
-      <div class="feature-card"><span class="icon">🔑</span><b>You control the AI call</b><p>The AI explanation step only runs if you set your own API key. Skip it entirely and you still get the full dependency graph and confidence scoring with zero data leaving your machine.</p></div>
-    </div>
+<!-- CASE LEDGER -->
+<section class="rv-sec">
+  <div class="wrap-wide">
+    <h2>What it costs when nobody looked</h2>
+    <p class="rv-lede">Four public incidents, each with sources. These are not greybox customers; greybox was not used on any of them. Each write-up says which signals greybox reads that relate, and what it would have missed.</p>
+    <div class="ledger" id="ledger"></div>
+    <p style="margin-top:22px;"><a class="cta ghost" href="case-studies.html">Read all four, with sources</a></p>
   </div>
 </section>
 
-<!-- PORTFOLIO MODE SHOWCASE (real feature, CAST-governance equivalent) -->
-<section style="border-bottom:none;">
-  <div class="wrap">
-    <h2>Take command of a whole portfolio, not just one repo</h2>
-    <p class="section-note">If you've got a folder full of repos — everything cloned from a GitHub org — point <code style="background:var(--surface); padding:2px 6px; border-radius:4px; font-family:'IBM Plex Mono',monospace; font-size:13px;">--portfolio</code> at the parent folder. Every subdirectory gets a real, full scan — no sampling — ranked into Quick Wins, Bigger Efforts, and Lower Priority.</p>
-    <pre style="background:var(--surface); border:1px solid var(--line); border-radius:8px; padding:16px 18px; font-family:'IBM Plex Mono',monospace; font-size:13px; color:var(--cyan); overflow-x:auto; margin-top:16px;">greybox /path/to/org-repos --portfolio --output portfolio_report.md</pre>
-    <p class="section-note" style="margin-top:14px;">This is real, working, in the open-source CLI today — not a roadmap item. The web demo's org-scan feature samples a few files per repo to stay fast within API rate limits; locally, there's no rate limit, so you get the full thing.</p>
+<!-- PRIVACY + PORTFOLIO -->
+<section class="rv-sec tight" style="background:var(--surface-2);">
+  <div class="wrap-wide">
+    <h2>Your code can stay where it is</h2>
+    <p class="rv-lede">The live scanner only reads public repositories. Most real legacy code is private, and some industries cannot send code to a third party at all. That is what the open-source CLI is for.</p>
+    <div class="rv-cols">
+      <div><h3>Runs on your machine</h3><p>Private GitHub, GitLab, Bitbucket, or code that never lived in a hosted repo. Nothing is uploaded by default.</p></div>
+      <div><h3>You control the AI call</h3><p>The AI explanation only runs if you set your own API key. Skip it and you still get the dependency graph and confidence scores.</p></div>
+      <div><h3>A whole portfolio in one run</h3><p>Point <code>--portfolio</code> at a folder of repos. Every subfolder gets a full scan, ranked into quick wins, bigger efforts and lower priority.</p></div>
+    </div>
+    <pre class="rv-code">greybox /path/to/org-repos --portfolio --output portfolio_report.md</pre>
+    <p class="section-note" style="margin-top:14px;">The web demo's org scan samples a few files per repo to stay inside API rate limits. The CLI has no such cap.</p>
   </div>
 </section>
 
-<!-- GAPS VS REAL TOOLS -->
-<section style="border-bottom:none;">
-  <div class="wrap">
-    <h2>Two real gaps in the tools you'd otherwise reach for</h2>
-    <p class="section-note">Not made up to sound good — checked directly against Swimm and OpenRewrite, two real, mature tools in this space.</p>
-    <div class="card-grid">
-      <div class="feature-card">
-        <span class="icon">💸</span>
-        <b>Free, no matter your team size</b>
-        <p>Swimm is $29/seat/month — real money for a 10-15 person team, $3,000-5,000/year, before you know if it's even the right tool. greybox is $0, regardless of how big your team is.</p>
-      </div>
-      <div class="feature-card">
-        <span class="icon">🧩</span>
-        <b>Handles what OpenRewrite structurally can't</b>
-        <p>OpenRewrite's recipes only work on known, repeatable patterns — a framework upgrade looks the same everywhere. A bespoke, undocumented function specific to your system has no recipe, by definition. That's exactly where greybox is built to help.</p>
-      </div>
-    </div>
-    <div class="cta-row" style="margin-top:20px;">
-      <a class="cta" href="why.html">See the full comparison, with real numbers →</a>
-    </div>
-  </div>
-</section>
-
-<!-- USE CASES — TILE GRID -->
-<section style="border-bottom:none;">
-  <div class="wrap">
-    <h2>Where this actually gets used</h2>
-    <p class="section-note">The most common misconception about this tool: that it's only for dead, untouched systems. Most real legacy pain isn't that — it's code your team ships to every week, where nobody left fully understands why it works the way it does.</p>
-    <div class="card-grid">
-      <div class="feature-card"><span class="icon">🔧</span><b>Before a risky change</b><p>You're about to touch a module you didn't write, that's been "working fine" for years. Scan first — know what's fragile before you edit it, not after it breaks in production.</p></div>
-      <div class="feature-card"><span class="icon">🧭</span><b>Onboarding a new engineer</b><p>Instead of "ask Dave, he's been here longest," give them a real starting map of what's risky, what's clean, and what to be careful with.</p></div>
-      <div class="feature-card"><span class="icon">🚨</span><b>After an incident</b><p>"Why did changing the notification service break the payment flow" is a legacy-understanding problem, not a bug — even on a system your team ships to weekly.</p></div>
-      <div class="feature-card"><span class="icon">📅</span><b>Quarterly health check</b><p>Run it periodically on core modules, not just once before a migration decision — a confidence score that drops over time is an early warning.</p></div>
-    </div>
-  </div>
-</section>
-
-<!-- SCALE OF THE PROBLEM — real cited stats, CAST "exclusive dataset" equivalent -->
-<section id="industry" class="tight">
-  <div class="wrap">
-    <h2>This isn't a niche problem</h2>
-    <p class="section-note">Real, cited research — not invented stats.</p>
+<!-- STATS -->
+<section class="rv-sec tight" id="industry">
+  <div class="wrap-wide">
+    <h2>This is not a niche problem</h2>
+    <p class="section-note" style="margin-bottom:18px;">Cited research, with sources on each card.</p>
     <div id="statCards"></div>
-
-    <h2 style="margin-top:32px;">When this goes wrong, it goes wrong at scale</h2>
-    <p class="section-note">Four real, public incidents — none of these companies thought their legacy system was a ticking clock, until it was.</p>
-    <div id="incidentChart"></div>
+    <h2 style="margin-top:44px;">When it goes wrong, it goes wrong at scale</h2>
+    <div id="incidentChart" style="max-width:820px;"></div>
   </div>
 </section>
 
-<!-- WHAT TO DO NEXT -->
-<section style="border-bottom:none;">
-  <div class="wrap">
-    <h2>Three things to check out</h2>
-    <div class="card-grid">
-      <a class="feature-card" href="sample.html" style="text-decoration:none; display:block;"><span class="icon">📄</span><b>Sample report →</b><p>A fixed 10-file example, so you can see the full report format without scanning anything.</p></a>
-      <a class="feature-card" href="live.html" style="text-decoration:none; display:block;"><span class="icon">🔍</span><b>Try it live →</b><p>Paste any public GitHub repo URL and get a real scan — real files, real dependency graph, real findings.</p></a>
-      <a class="feature-card" href="why.html" style="text-decoration:none; display:block;"><span class="icon">💬</span><b>Why not just Claude →</b><p>The honest answer to "aren't you just calling the API anyone can call," with real numbers.</p></a>
+<!-- CLOSING -->
+<section class="rv-band">
+  <div class="wrap-wide">
+    <h2>Start with the sample. It takes ten seconds.</h2>
+    <p>See a full report on a made-up system, then scan a real public repo when you're ready. Compared against Swimm and OpenRewrite with real numbers on the <a href="why.html" style="color:inherit; font-weight:700;">why greybox</a> page.</p>
+    <div class="cta-row">
+      <a class="cta" href="sample.html">See the sample report</a>
+      <a class="cta ghost" href="live.html">Scan a real repo</a>
     </div>
   </div>
 </section>
-
-<footer>
-  <div class="wrap">
-    <span style="color:var(--muted); font-size:12px;">&copy; 2026 greybox</span>
-  </div>
-</footer>
+<div class="wrap-wide rv-foot">&copy; 2026 greybox. Sample data on this page is illustrative and not from a real repository.</div>
 
 <script src="sample-data.js"></script>
+<script src="case-data.js"></script>
 <script src="shared.js"></script>
 <script>
-  mermaid.initialize({ startOnLoad: false, theme: 'dark' });
-  document.getElementById('nav-placeholder').outerHTML = renderNavHtml('index.html');
+document.getElementById('nav-placeholder').outerHTML = renderNavHtml('index.html');
 
-  document.getElementById('statCards').innerHTML = renderStatCards([
-    { big: '$21.9B → $37.3B', label: 'Legacy modernization market, 2026 → 2030', source: 'Industry market research' },
-    { big: '~33%', label: "Developer time lost weekly to technical debt", source: 'Stripe Developer Coefficient survey' },
-    { big: '43%+', label: 'Of banking systems still run on COBOL', source: 'Reuters, cited industry-wide' },
-  ]);
-  document.getElementById('incidentChart').innerHTML = renderIncidentChart();
+/* ---------- stats (unchanged, real cited figures) ---------- */
+document.getElementById('statCards').innerHTML = renderStatCards([
+  { big: '$21.9B → $37.3B', label: 'Legacy modernization market, 2026 → 2030', source: 'Industry market research' },
+  { big: '~33%', label: 'Developer time lost weekly to technical debt', source: 'Stripe Developer Coefficient survey' },
+  { big: '43%+', label: 'Of banking systems still run on COBOL', source: 'Reuters, cited industry-wide' },
+]);
+document.getElementById('incidentChart').innerHTML = renderIncidentChart();
 
-  // Live-rendered showcase, built from the exact same sample data and
-  // rendering code as sample.html — not a static image. Each piece is
-  // independent so a failure in one (e.g. mermaid CDN blocked) doesn't
-  // take out the others.
-  (async () => {
-    try {
-      const graphSrc = buildMermaidSource(SAMPLE_DATA.dependency_graph, Object.fromEntries(SAMPLE_DATA.modules.map(m => [m.module, m.confidence])));
-      await renderZoomableGraph(document.getElementById('homeGraph'), graphSrc, 'Illustrative sample dependency graph');
-    } catch (e) { console.error('homeGraph render failed', e); }
-  })();
-  try {
-    document.getElementById('homeExecSummary').innerHTML = renderExecutiveSummary(SAMPLE_DATA);
-    const riskiest = SAMPLE_DATA.modules.slice().sort((a, b) => a.confidence - b.confidence)[0];
-    document.getElementById('homeModuleCard').innerHTML = renderModuleCard(riskiest, 0);
-  } catch (e) { console.error('home summary/module render failed', e); }
+/* ---------- the probe ---------- */
+(function () {
+  const NS = 'http://www.w3.org/2000/svg';
+  const POS = { main:[500,52], api_gateway:[500,122], auth:[225,204], ride_service:[500,204], notification_service:[790,204],
+    user_repository:[125,290], pricing_engine:[390,290], driver_matcher:[620,290], legacy_rate_table:[390,366], geo_utils:[705,366] };
+  const NW = 184, NH = 34;
+  const mods = SAMPLE_DATA.modules, byName = Object.fromEntries(mods.map(m => [m.module, m]));
+  const col = c => c < 45 ? '#E8366A' : c < 70 ? '#F5C400' : '#2FBF84';
+  const svg = document.getElementById('probeSvg'), hole = document.getElementById('hole'), ring = document.getElementById('ring');
+  const edges = document.getElementById('edges'), nodes = document.getElementById('nodes');
+  const info = document.getElementById('probeInfo'), chips = document.getElementById('probeChips');
+  const nodeEls = {};
+  const el = (n, a, p) => { const e = document.createElementNS(NS, n); for (const k in a) e.setAttribute(k, a[k]); (p || nodes).appendChild(e); return e; };
+
+  Object.entries(SAMPLE_DATA.dependency_graph).forEach(([from, tos]) => tos.forEach(to => {
+    if (!POS[from] || !POS[to]) return;
+    const [x1, y1] = POS[from], [x2, y2] = POS[to], my = (y1 + y2) / 2;
+    el('path', { d: `M${x1} ${y1 + NH/2} C${x1} ${my} ${x2} ${my} ${x2} ${y2 - NH/2}` }, edges);
+  }));
+  mods.forEach(m => {
+    const [x, y] = POS[m.module]; if (!x) return;
+    const g = el('g', { transform: `translate(${x - NW/2} ${y - NH/2})` });
+    el('rect', { width: NW, height: NH, fill: '#262b30', stroke: col(m.confidence), 'stroke-width': 2.5 }, g);
+    el('rect', { width: 8, height: NH, fill: col(m.confidence) }, g);
+    const t = el('text', { x: 18, y: 22, fill: '#EDEFEA', 'font-size': 12.5, 'font-family': 'IBM Plex Mono, monospace' }, g); t.textContent = m.module;
+    const n = el('text', { x: NW - 10, y: 22, fill: col(m.confidence), 'font-size': 13, 'font-weight': 700, 'text-anchor': 'end', 'font-family': 'IBM Plex Mono, monospace' }, g); n.textContent = m.confidence;
+    nodeEls[m.module] = g.firstChild;
+  });
+
+  let current = null;
+  function show(name) {
+    if (current === name) return; current = name;
+    Object.entries(nodeEls).forEach(([k, r]) => r.setAttribute('stroke-width', k === name ? 5 : 2.5));
+    chips.querySelectorAll('.chip').forEach(c => c.setAttribute('aria-pressed', c.dataset.m === name ? 'true' : 'false'));
+    const m = byName[name]; if (!m) return;
+    const bits = [];
+    if (m.magic_numbers.length) bits.push(`${m.magic_numbers.length} undocumented constant${m.magic_numbers.length > 1 ? 's' : ''}`);
+    if (m.has_bare_except) bits.push('a bare <code>except:</code> that hides failures');
+    m.flagged_comments.forEach(c => bits.push(`flagged comment on line ${c.line}: <em>${c.text.replace(/</g, '&lt;')}</em>`));
+    if (!bits.length) bits.push('no red flags found');
+    info.innerHTML = `<h3>${m.module}</h3><div class="path">${m.path}</div>
+      <div class="meter-row"><b>${m.confidence}</b><div class="meter"><i style="width:${m.confidence}%; background:${col(m.confidence)}"></i></div></div>
+      <ul>${bits.map(b => `<li>${b}</li>`).join('')}</ul>
+      <p style="font-size:14px; margin:10px 0 0;"><b>Next step:</b> ${m.suggested_next_steps[0].replace(/</g, '&lt;')}</p>`;
+  }
+  mods.slice().sort((a, b) => a.confidence - b.confidence).forEach(m => {
+    const b = document.createElement('button'); b.type = 'button'; b.className = 'chip'; b.dataset.m = m.module; b.setAttribute('aria-pressed', 'false');
+    b.innerHTML = `<i style="background:${col(m.confidence)}"></i>${m.module} ${m.confidence}`;
+    b.onclick = () => { const [x, y] = POS[m.module]; move(x, y); show(m.module); };
+    chips.appendChild(b);
+  });
+
+  function move(x, y) { hole.setAttribute('cx', x); hole.setAttribute('cy', y); ring.setAttribute('cx', x); ring.setAttribute('cy', y); }
+  function nearest(x, y) {
+    let best = null, bd = 80;
+    for (const m of mods) { const p = POS[m.module]; if (!p) continue; const d = Math.hypot(p[0] - x, p[1] - y); if (d < bd) { bd = d; best = m.module; } }
+    return best;
+  }
+  let swept = false, raf = null;
+  function stopSweep() { swept = true; if (raf) cancelAnimationFrame(raf); }
+  svg.addEventListener('pointermove', e => {
+    stopSweep();
+    const r = svg.getBoundingClientRect(), x = (e.clientX - r.left) * 1000 / r.width, y = (e.clientY - r.top) * 410 / r.height;
+    move(x, y); const n = nearest(x, y); if (n) show(n);
+  });
+  svg.addEventListener('pointerleave', () => { if (swept && !slabOff) { /* leave ring where it is */ } });
+
+  let slabOff = false;
+  const tog = document.getElementById('slabToggle');
+  tog.onclick = () => {
+    slabOff = !slabOff; stopSweep();
+    document.getElementById('slab').style.display = slabOff ? 'none' : '';
+    ring.style.display = slabOff ? 'none' : '';
+    tog.setAttribute('aria-pressed', slabOff); tog.textContent = slabOff ? 'Put slab back' : 'Remove slab';
+  };
+
+  const reduce = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+  if (reduce) { const [x, y] = POS.legacy_rate_table; move(x, y); show('legacy_rate_table'); }
+  else {
+    // one orchestrated moment: the probe sweeps once to show it can be moved, and lands on the riskiest file
+    const t0 = performance.now(), dur = 3200;
+    (function step(now) {
+      if (swept) return;
+      const t = Math.min((now - t0) / dur, 1), e = t < .5 ? 2*t*t : 1 - Math.pow(-2*t + 2, 2) / 2;
+      const x = 90 + e * 300, y = 120 + Math.sin(e * Math.PI) * 60 + e * 190;
+      move(x, y); const n = nearest(x, y); if (n) show(n);
+      if (t < 1) raf = requestAnimationFrame(step); else { move(...POS.legacy_rate_table); show('legacy_rate_table'); swept = true; }
+    })(t0);
+  }
+})();
+
+/* ---------- score tuner: same formula as analyzer.py confidence_score ---------- */
+(function () {
+  const $ = id => document.getElementById(id);
+  function calc() {
+    const br = +$('tBranch').value, k = +$('tConst').value, bare = $('tBare').checked, todo = $('tTodo').checked;
+    const rb = Math.min(br * 5, 40), rk = Math.min(k * 4, 30), rx = bare ? 15 : 0, rt = todo ? -5 : 10;
+    const score = Math.max(0, Math.min(100, 100 - (rb + rk + rx + rt)));
+    $('tBranchVal').textContent = br; $('tConstVal').textContent = k;
+    $('tScore').innerHTML = `${score}<small>/100</small>`;
+    const band = score < 45 ? ['High risk: handle with care', '#E8366A'] : score < 70 ? ['Moderate risk', '#F5C400'] : ['Low risk: safe to lean on', '#2FBF84'];
+    $('tBand').textContent = band[0]; $('tBand').style.background = band[1];
+    $('tMeter').style.width = score + '%'; $('tMeter').style.background = band[1];
+    const row = (a, b) => `<tr><td>${a}</td><td>${b}</td></tr>`;
+    $('tTable').innerHTML = row('Start', '100') +
+      row(`Branches: ${br} × 5, capped at 40`, '−' + rb) + row(`Constants: ${k} × 4, capped at 30`, '−' + rk) +
+      row('Bare except', bare ? '−15' : '0') + row(todo ? 'Flagged comment present' : 'No flagged comment', todo ? '+5' : '−10');
+  }
+  ['tBranch', 'tConst', 'tBare', 'tTodo'].forEach(id => $(id).addEventListener('input', calc)); calc();
+})();
+
+/* ---------- scenario tabs ---------- */
+(function () {
+  const S = [
+    { t: 'Before a risky change', h: 'You are about to edit a module you did not write.', p: 'It has "worked fine" for years. Scan it first, so you know what is fragile before you edit it and not after it breaks in production.', cmd: 'greybox ./billing --output before_change.md', link: ['sample.html', 'See what a per-file finding looks like'] },
+    { t: 'Onboarding an engineer', h: 'Give a new hire a map, not "ask Dave".', p: 'Instead of relying on whoever has been here longest, hand over a ranked list of what is risky, what is clean, and what to be careful with.', cmd: 'greybox ./service --output onboarding_map.md', link: ['sample.html', 'Open the sample report'] },
+    { t: 'After an incident', h: 'Why did changing one service break another?', p: 'That is a legacy-understanding problem, even on a system your team ships to weekly. The dependency graph shows what really calls what.', cmd: 'greybox ./notifications --output post_incident.md', link: ['live.html', 'Scan a public repo to see a graph'] },
+    { t: 'Quarterly health check', h: 'Watch the score move, not only the day before a migration.', p: 'Run it on core modules every quarter. A confidence score that drops over time is an early warning that something is getting harder to change.', cmd: 'greybox ./core --output q4_health.md', link: ['sample.html', 'See the confidence view'] },
+  ];
+  const list = document.getElementById('tablist'), panel = document.getElementById('tabpanel');
+  function pick(i, focus) {
+    [...list.children].forEach((b, j) => { b.setAttribute('aria-selected', i === j); b.tabIndex = i === j ? 0 : -1; });
+    const s = S[i];
+    panel.innerHTML = `<h3>${s.h}</h3><p>${s.p}</p><code class="try">${s.cmd}</code><a class="go" href="${s.link[0]}">${s.link[1]}</a>`;
+    panel.setAttribute('aria-labelledby', 'tab' + i);
+    if (focus) list.children[i].focus();
+  }
+  S.forEach((s, i) => {
+    const b = document.createElement('button'); b.type = 'button'; b.id = 'tab' + i; b.setAttribute('role', 'tab'); b.textContent = s.t;
+    b.onclick = () => pick(i);
+    b.onkeydown = e => { const n = S.length; if (e.key === 'ArrowDown' || e.key === 'ArrowRight') { e.preventDefault(); pick((i + 1) % n, true); } if (e.key === 'ArrowUp' || e.key === 'ArrowLeft') { e.preventDefault(); pick((i + n - 1) % n, true); } };
+    list.appendChild(b);
+  });
+  pick(0);
+})();
+
+/* ---------- case ledger ---------- */
+document.getElementById('ledger').innerHTML = CASE_STUDIES.map(c => `
+  <a class="ledger-row" href="case-studies.html#${c.id}" data-failure="${c.failure}">
+    <span class="stripe"></span>
+    <span class="who"><b>${c.name}</b><span>${c.sector}, ${c.region}, ${c.when}</span></span>
+    <span class="what">${c.headline}</span>
+    <span class="amt">${c.cost}</span>
+  </a>`).join('');
 </script>
 <script defer src="/_vercel/insights/script.js"></script>
 </body>

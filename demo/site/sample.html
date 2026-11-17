@@ -7,7 +7,7 @@
 <link rel="icon" type="image/png" href="assets/favicon.png">
 <link rel="apple-touch-icon" href="assets/apple-touch-icon.png">
 <link rel="preconnect" href="https://fonts.googleapis.com">
-<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;600;700&family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Archivo:wdth,wght@62..125,100..900&family=Hanken+Grotesk:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="style.css">
 <script src="https://cdnjs.cloudflare.com/ajax/libs/mermaid/10.9.0/mermaid.min.js"></script>
 </head>
@@ -120,7 +120,7 @@
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
 <script src="shared.js"></script>
 <script>
-  mermaid.initialize({ startOnLoad: false, theme: 'dark' });
+  mermaid.initialize({ startOnLoad: false, theme: 'neutral' });
   document.getElementById('nav-placeholder').outerHTML = renderNavHtml('sample.html');
   window.__lastScanData = SAMPLE_DATA;
   SAMPLE_DATA.architecture_by_folder = buildFolderArchitectureGraph(SAMPLE_DATA.modules, SAMPLE_DATA.dependency_graph);

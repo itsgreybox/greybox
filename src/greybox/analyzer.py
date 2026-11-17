@@ -191,7 +191,9 @@ def confidence_score(facts):
     risk += min(len(facts.magic_numbers) * 4, 30)
     risk += 15 if facts.has_bare_except else 0
     risk += 10 if not facts.todo_comments else -5
-    return max(0, 100 - risk)
+    # Clamp both ends: a flagged comment gives -5 risk, so a file with no other
+    # signals would otherwise score 105.
+    return max(0, min(100, 100 - risk))
 
 
 def suggest_next_steps(facts):
